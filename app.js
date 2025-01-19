@@ -1,11 +1,18 @@
 const express = require('express');
-const app = express();
-const port = 3000;
+const path = require('path');
 
+const app = express();
+const PORT = 3000;
+
+// Configura la carpeta "public" para archivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ruta principal para servir "index.html"
 app.get('/', (req, res) => {
-  res.send('¡Hola, Express con GITHUB!');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+// Inicia el servidor
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
