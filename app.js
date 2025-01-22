@@ -12,3 +12,7 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
+// Servir el archivo CSS directamente
+app.get('/style.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'styles', 'style.css'));
+});
