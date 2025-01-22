@@ -4,19 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menú de Navegación</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/../style.css">
 </head>
 <body>
     <header>
         <nav class="navbar">
             <ul class="nav-list">
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#servicios">Servicios</a></li>
-                <li><a href="#nosotros">Nosotros</a></li>
-                <li><a href="#contacto">Contacto</a></li>
+                <li>
+                    <a href="#inicio">Inicio</a>
+                </li>
+                <li>
+                    <a href="#servicios">Servicios</a>
+                    <ul class="dropdown">
+                        <li><a href="#web">Desarrollo Web</a></li>
+                        <li><a href="#movil">Aplicaciones Móviles</a></li>
+                        <li><a href="#seo">SEO</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#nosotros">Nosotros</a>
+                </li>
+                <li>
+                    <a href="#contacto">Contacto</a>
+                    <ul class="dropdown">
+                        <li><a href="#email">Correo</a></li>
+                        <li><a href="#telefono">Teléfono</a></li>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </header>
     
+    <script src="/../script.js"></script>
 </body>
 </html>
