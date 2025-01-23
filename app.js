@@ -3,8 +3,9 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configurar la carpeta 'styles' como estática
-app.use(express.static(path.join(__dirname, 'styles')));
+app.get('/style.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'styles', 'style.css'));
+});
 
 // Servir el archivo index.html desde la raíz
 app.get('/', (req, res) => {
