@@ -142,25 +142,25 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   display: flex;
-  flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   height: 100vh;
   margin: 0;
-  overflow-x: hidden; /* Evitar desplazamiento horizontal */
+  flex-direction: column;
 }
 
 /* Estilo del título */
 header {
   background-color: #4e73df; /* Color azul */
   color: white;
-  padding: 30px 0;
+  padding: 50px 0;
   width: 100%;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
   position: relative;
   z-index: 10;
   border-bottom: 5px solid #f0f0f0;
+  margin-top: 40px;
 }
 
 /* Estilo del menú */
@@ -169,12 +169,11 @@ nav {
   width: 100%;
   padding: 15px 0;
   position: absolute;
-  top: 80px;
+  top: 120px; /* Aumento del valor de 'top' para bajarlo más */
   z-index: 1000;
   border-radius: 10px; /* Bordes redondeados */
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
   transition: all 0.3s ease;
-  margin-top: 20px; /* Espaciado superior */
 }
 
 /* Efecto hover en la barra de navegación */
@@ -231,19 +230,25 @@ nav ul li a:hover::after {
 
 /* Estilo del menú responsivo */
 @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
   header {
-    padding: 20px 0;
+    padding: 30px 0; /* Ajustar padding para pantallas pequeñas */
+    margin-top: 20px; /* Reducir margen superior */
   }
 
   nav {
     padding: 10px 0;
+    top: 180px; /* Ajustar la posición del menú en dispositivos pequeños */
     border-radius: 0;
     box-shadow: none;
   }
 
   nav ul {
     flex-direction: column;
-    align-items: center; /* Alineación centrada en móvil */
+    align-items: center;
   }
 
   nav ul li {
@@ -252,12 +257,13 @@ nav ul li a:hover::after {
   }
 
   nav ul li a {
-    font-size: 1.1rem;
-    padding-bottom: 8px;
+    font-size: 1rem; /* Reducir el tamaño de fuente en dispositivos pequeños */
   }
 
-  /* Mejorar la legibilidad en dispositivos pequeños */
-  body {
-    padding: 10px;
+  /* Aumentar el tamaño de los enlaces del menú en pantallas más grandes */
+  @media (min-width: 769px) {
+    nav ul li a {
+      font-size: 1.2rem; /* Tamaño de fuente para pantallas más grandes */
+    }
   }
 }
