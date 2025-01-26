@@ -1,3 +1,21 @@
+:root {
+  --primary-color: #4e73df;
+  --primary-hover: #3b5cb7;
+  --primary-active: #2d497a;
+  --background-color: #f4f7fc;
+  --card-bg-color: #fff;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --error-bg-color: #f8d7da;
+  --error-border-color: #f5c6cb;
+  --error-text-color: #721c24;
+  --text-color: #333;
+  --heading-color: #2d3e50;
+  --border-color: #ddd;
+  --input-bg-color: #f9f9f9;
+  --focus-border-color: #4e73df;
+  --focus-shadow-color: rgba(78, 115, 223, 0.6);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,19 +23,20 @@
 }
 
 body {
-  background-color: #f4f7fc;
+  background-color: var(--background-color);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
+  color: var(--text-color);
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
   flex-direction: column;
+  position: relative; /* Para que los elementos flotantes se alineen */
 }
 
 h1 {
-  color: #2d3e50;
+  color: var(--heading-color);
   font-size: 2em;
   text-align: center;
   font-weight: 600;
@@ -28,19 +47,22 @@ h1 {
 }
 
 form {
-  background-color: #fff;
+  background-color: var(--card-bg-color);
   padding: 40px;
   border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px var(--card-shadow);
   width: 100%;
   max-width: 400px;
-  transition: all 0.3s ease;
-  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: absolute; /* Cambiado a absolute para centrar correctamente */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Esto centra el formulario en la pantalla */
   z-index: 1;
 }
 
 form:hover {
-  transform: translateY(-5px);
+  transform: translate(-50%, -50%) translateY(-5px); /* Mantener el centro y el efecto hover */
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
 }
 
@@ -50,7 +72,7 @@ div {
 
 label {
   font-weight: 500;
-  color: #2d3e50;
+  color: var(--heading-color);
   display: block;
   margin-bottom: 8px;
 }
@@ -58,25 +80,25 @@ label {
 input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background-color: #f9f9f9;
-  color: #333;
+  background-color: var(--input-bg-color);
+  color: var(--text-color);
   font-size: 1em;
   transition: all 0.3s ease;
 }
 
 input:focus {
   outline: none;
-  border-color: #4e73df;
+  border-color: var(--focus-border-color);
   background-color: #fff;
-  box-shadow: 0 0 5px rgba(78, 115, 223, 0.6);
+  box-shadow: 0 0 5px var(--focus-shadow-color);
 }
 
 button {
   width: 100%;
   padding: 14px;
-  background-color: #4e73df;
+  background-color: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -87,23 +109,24 @@ button {
 }
 
 button:hover {
-  background-color: #3b5cb7;
+  background-color: var(--primary-hover);
 }
 
 button:active {
-  background-color: #2d497a;
+  background-color: var(--primary-active);
 }
-
 .error-message {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--error-bg-color);
+  color: var(--error-text-color);
   padding: 15px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid var(--error-border-color);
   border-radius: 5px;
-  margin-top: 20px;
-  max-width: 400px;
+  position: fixed;
+  bottom: 0;  /* Fijamos la posición en la parte inferior de la pantalla */
+  left: 0;
   width: 100%;
   text-align: center;
+  z-index: 10;
 }
 /* Reset de estilos por defecto */
 * {
