@@ -1,18 +1,22 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000;
 
-// Servir archivos estáticos desde la raíz del proyecto (como style.css)
-app.use(express.static(path.join(__dirname)));
+// Servir archivos estáticos desde la carpeta raíz
+app.use(express.static(path.join(__dirname, '/')));
 
-// Servir el archivo index.html desde la raíz
+// Ruta para la página de inicio (index.html)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html')); // Ruta para la página de login
+});
+
+// Ruta para la página de menú (menu.htm)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'menu.htm')); // Ruta para la página de menú
 });
 
 // Iniciar el servidor
 app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
-

@@ -3,11 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hola Mundo</title>
+    <title>Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>¡Hola, mundo!</h1>
-    <p>Este es un ejemplo de HTML servido con Express.js.</p>
+    <h1>Iniciar sesión</h1>
+    <form id="login-form" method="POST">
+        <div>
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div>
+            <button type="submit">Iniciar sesión</button>
+        </div>
+    </form>
+
+    <!-- Sección de error (oculta por defecto) -->
+    <div class="error-message" id="error-message" style="display:none;">
+        <p>¡Error! Usuario o contraseña incorrectos. Intenta de nuevo.</p>
+    </div>
+
+    <script>
+        document.getElementById("login-form").addEventListener("submit", function(event) {
+            event.preventDefault(); // Previene el envío del formulario para hacer la validación
+
+            // Obtener los valores del formulario
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            // Ocultar el mensaje de error al inicio de cada intento
+            document.getElementById("error-message").style.display = "none";
+
+            // Validar las credenciales
+            if (username === "User" && password === "123456") {
+                // Redirigir a menu.htm si las credenciales son correctas
+                window.location.href = "menu.htm"; // Redirige a la página menu.htm
+            } else {
+                // Mostrar mensaje de error si las credenciales son incorrectas
+                document.getElementById("error-message").style.display = "block";
+            }
+        });
+    </script>
+    <script>
+        document.getElementById("login-form").addEventListener("submit", function(event) {
+            event.preventDefault(); // Previene el envío del formulario para hacer la validación
+    
+            // Obtener los valores del formulario
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+    
+            // Ocultar el mensaje de error al inicio de cada intento
+            document.getElementById("error-message").style.display = "none";
+    
+            // Validar las credenciales
+            if (username === "User" && password === "123456") {
+                // Redirigir a menu.html si las credenciales son correctas
+                window.location.href = "/menu.html"; // Redirige a la página menu.html
+            } else {
+                // Mostrar mensaje de error si las credenciales son incorrectas
+                document.getElementById("error-message").style.display = "block";
+            }
+        });
+    </script>
+    
 </body>
 </html>
