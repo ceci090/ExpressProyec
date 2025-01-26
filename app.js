@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
 });
 
 // Ruta para la página de menú (menu.htm)
-app.get('/', (req, res) => {
+app.get('/menu', (req, res) => {
   res.sendFile(path.join(__dirname, 'menu.htm')); // Ruta para la página de menú
 });
 
