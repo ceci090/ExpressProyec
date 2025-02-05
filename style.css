@@ -447,7 +447,7 @@ nav {
     padding: 10px;
     color: #fff; /* Color del texto */
     text-decoration: none;
-    background-color: rgba(12, 80, 46, 0.774); /* Fondo semi-transparente para el texto */
+    background-color: rgba(17, 85, 51, 0.774); /* Fondo semi-transparente para el texto */
 }
 
 .menu-item a:hover {
