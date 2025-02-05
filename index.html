@@ -22,28 +22,26 @@
         </div>
     </form>
 
-    <!-- Sección de error (oculta por defecto) -->
     <div class="error-message" id="error-message" style="display:none;">
         <p>¡Error! Usuario o contraseña incorrectos. Intenta de nuevo.</p>
     </div>
 
     <script>
         document.getElementById("login-form").addEventListener("submit", function(event) {
-            event.preventDefault(); // Previene el envío del formulario para hacer la validación
+            event.preventDefault(); 
 
-            // Obtener los valores del formulario
+            
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
 
-            // Ocultar el mensaje de error al inicio de cada intento
             document.getElementById("error-message").style.display = "none";
 
-            // Validar las credenciales
+           
             if (username === "User" && password === "123456") {
-                // Redirigir a menu.html si las credenciales son correctas
-                window.location.href = "menu.html"; // Redirige a la página menu.html
+               
+                window.location.href = "menu.html"; 
             } else {
-                // Mostrar mensaje de error si las credenciales son incorrectas
+                
                 document.getElementById("error-message").style.display = "block";
             }
         });

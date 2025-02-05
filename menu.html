@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Principal</title>
+    <title>Menú Desplegable con Submenús</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,11 +11,40 @@
         <h1>Bienvenido al Menú Principal</h1>
     </header>
     <nav>
-        <ul>
-            <li><a href="inicio.htm">Inicio</a></li>
-            <li><a href="perfil.htm">Perfil</a></li>
-            <li><a href="cerrar_sesion.htm">Cerrar sesión</a></li>
+        <ul class="menu">
+            <li class="menu-item">
+                <a href="inicio.htm">Inicio</a>
+                <ul class="submenu">
+                    <li><a href="subinicio1.htm">Subinicio 1</a></li>
+                    <li><a href="subinicio2.htm">Subinicio 2</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="perfil.htm">Perfil</a>
+                <ul class="submenu">
+                    <li><a href="datos_personales.htm">Datos Personales</a></li>
+                    <li><a href="configuracion.htm">Configuración</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="servicios.htm">Servicios</a>
+                <ul class="submenu">
+                    <li><a href="servicio1.htm">Servicio 1</a></li>
+                    <li><a href="servicio2.htm">Servicio 2</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="contacto.htm">Contacto</a>
+                <ul class="submenu">
+                    <li><a href="ubicacion.htm">Ubicación</a></li>
+                    <li><a href="formulario.htm">Formulario</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="cerrar_sesion.htm">Cerrar sesión</a>
+            </li>
         </ul>
     </nav>
 </body>
 </html>
+

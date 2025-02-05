@@ -129,6 +129,7 @@ button:active {
   z-index: 10;
 }
 
+
 /* Reset de estilos por defecto */
 * {
   margin: 0;
@@ -266,4 +267,159 @@ nav ul li a:hover::after {
       font-size: 1.2rem; /* Tamaño de fuente para pantallas más grandes */
     }
   }
+}
+
+/* Reset de estilos por defecto */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilos generales */
+body {
+  background-color: #f4f7fc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  height: 100vh;
+  margin: 0;
+  flex-direction: column;
+}
+
+/* Estilo del título */
+header {
+  background-color: #4e73df;
+  color: white;
+  padding: 50px 0;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  border-bottom: 5px solid #f0f0f0;
+  margin-top: 40px;
+}
+
+/* Estilo del menú */
+nav {
+  background-color: #ffffff;
+  width: 100%;
+  padding: 15px 0;
+  position: absolute;
+  top: 120px;
+  z-index: 1000;
+  border-radius: 10px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Efecto hover en la barra de navegación */
+nav:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo de los enlaces */
+nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+nav ul li {
+  margin-right: 40px;
+  position: relative;
+}
+
+nav ul li a {
+  color: #333;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  transition: all 0.3s ease;
+  padding-bottom: 10px;
+}
+
+nav ul li a:hover {
+  color: #4e73df;
+  transform: translateY(-5px);
+}
+
+/* Subrayado animado */
+nav ul li a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background-color: #4e73df;
+  transition: width 0.3s ease;
+}
+
+nav ul li a:hover::after {
+  width: 100%;
+}
+
+/* Estilo del submenú */
+nav ul li .submenu {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  padding: 10px 0;
+  min-width: 180px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+nav ul li .submenu li {
+  margin: 0;
+}
+
+nav ul li .submenu li a {
+  font-size: 1rem;
+  padding: 10px 20px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: #333;
+  display: block;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+nav ul li .submenu li a:hover {
+  background-color: #f4f7fc;
+  color: #4e73df;
+}
+
+/* Mostrar el submenú al pasar el ratón */
+nav ul li:hover .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Estilo del menú responsivo */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  header {
+    padding: 30px 0;
+    margin-top: 20px;
+  }
+
 }
