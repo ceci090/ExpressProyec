@@ -423,3 +423,59 @@ nav ul li:hover .submenu {
   }
 
 }
+/* Fondo del menú */
+nav {
+    background-image: url('fondo.jpg'); /* Ruta de la imagen */
+    background-size: cover; /* Ajusta la imagen al tamaño del contenedor */
+    background-position: center; /* Centra la imagen */
+    padding: 10px; /* Espaciado dentro del menú */
+}
+
+/* Estilos generales para el menú */
+.menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-item {
+    position: relative;
+}
+
+.menu-item a {
+    display: block;
+    padding: 10px;
+    color: #fff; /* Color del texto */
+    text-decoration: none;
+    background-color: rgba(12, 80, 46, 0.774); /* Fondo semi-transparente para el texto */
+}
+
+.menu-item a:hover {
+    background-color: rgba(0, 0, 0, 0.7); /* Efecto hover */
+}
+
+/* Submenú */
+.submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo del submenú */
+    list-style-type: none;
+    padding: 0;
+}
+
+.menu-item:hover .submenu {
+    display: block; /* Muestra el submenú cuando se pasa el mouse sobre el item */
+}
+
+.submenu li a {
+    padding: 8px;
+    color: #fff;
+    text-decoration: none;
+}
+
+.submenu li a:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
