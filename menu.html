@@ -6,7 +6,7 @@
     <title>Menú Desplegable con Submenús</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Agregar un estilo de transición suave para los submenús */
+        /* Estilos del menú */
         .submenu {
             display: none;
             position: absolute;
@@ -28,7 +28,6 @@
             animation: slideIn 0.5s ease-out;
         }
 
-        /* Animación de deslizamiento */
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -40,7 +39,6 @@
             }
         }
 
-        /* Ajustes adicionales al estilo del menú */
         ul.menu {
             padding: 0;
             margin: 0;
@@ -59,6 +57,25 @@
             background-color: #575757;
         }
 
+        /* Estilos del breadcrumb */
+        .breadcrumb {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px;
+            background-color: #f4f4f4;
+            margin: 10px 0;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: #333;
+            margin-right: 5px;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
         header h1 {
             text-align: center;
             padding: 20px;
@@ -67,8 +84,15 @@
 </head>
 <body>
     <header>
-        
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb">
+            <a href="inicio.htm">Inicio</a> > 
+            <a href="perfil.htm">Perfil</a> > 
+            <a href="configuracion.htm">Configuración</a>
+        </nav>
+       
     </header>
+
     <nav>
         <ul class="menu">
             <li class="menu-item">
@@ -106,12 +130,12 @@
     </nav>
 
     <script>
-        // Ejemplo de JavaScript para agregar una funcionalidad de saludo personalizado
         window.onload = function() {
             const saludo = document.createElement('p');
             saludo.textContent = '¡Hola, Ceci! Bienvenido a tu perfil.';
             document.querySelector('header').appendChild(saludo);
         }
     </script>
+    
 </body>
 </html>
