@@ -1,481 +1,201 @@
-:root {
-  --primary-color: #4e73df;
-  --primary-hover: #3b5cb7;
-  --primary-active: #2d497a;
-  --background-color: #f4f7fc;
-  --card-bg-color: #fff;
-  --card-shadow: rgba(0, 0, 0, 0.1);
-  --error-bg-color: #f8d7da;
-  --error-border-color: #f5c6cb;
-  --error-text-color: #721c24;
-  --text-color: #333;
-  --heading-color: #2d3e50;
-  --border-color: #ddd;
-  --input-bg-color: #f9f9f9;
-  --focus-border-color: #4e73df;
-  --focus-shadow-color: rgba(78, 115, 223, 0.6);
-}
-
+/* Estilos generales */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
 }
-
+/* Fondo animado con gradiente y movimiento sutil */
 body {
-  background-color: var(--background-color);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text-color);
+  background: linear-gradient(to right, #eeb179, #d6a571, #c8a865);
+  background-size: 200% 200%;
+  animation: gradientAnimation 6s ease infinite;
+  height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  margin: 0;
-  flex-direction: column;
-  position: relative; /* Para que los elementos flotantes se alineen */
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  overflow: hidden;
 }
 
-h1 {
-  color: var(--heading-color);
-  font-size: 2em;
+/* Animación de fondo para un gradiente en movimiento */
+@keyframes gradientAnimation {
+  0% {
+      background-position: 0% 50%;
+  }
+  50% {
+      background-position: 100% 50%;
+  }
+  100% {
+      background-position: 0% 50%;
+  }
+}
+
+
+/* Filtro de desenfoque para todo el body */
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+/* Caja de login con diseño suave y borde redondeado */
+.login-box {
+  background: rgba(255, 255, 255, 0.4); /* Fondo con mayor transparencia */
+  backdrop-filter: blur(10px); /* Desenfoque menos intenso para un fondo más suave */
+  padding: 50px 40px;
+  border-radius: 20px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1); /* Sombra más difusa y suave */
   text-align: center;
-  font-weight: 600;
+  width: 400px;
+  border: 1px solid rgba(128, 112, 112, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease; /* Suaviza el cambio cuando se realiza alguna acción */
+}
+
+/* Efecto hover para darle un toque dinámico */
+.login-box:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Sombra más prominente al pasar el cursor */
+}
+
+
+/* Título sin degradado */
+.login-box h1 {
+  font-size: 36px; 
+  margin-bottom: 25px;
+  font-weight: 700; 
+  color: #5e3b1b;
+  text-transform: uppercase; 
+  letter-spacing: 2px; 
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2); 
+  transition: all 0.3s ease; /* Agrego una transición para cuando cambie de estado */
+}
+
+/* Efecto hover sobre el título */
+.login-box h1:hover {
+  color: #d6a571; /* Cambia de color al pasar el cursor */
+  transform: translateY(-4px); /* Movimiento hacia arriba para hacerlo más dinámico */
+  text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3); /* Aumenta la sombra al hacer hover */
+}
+
+/* Estilo para la imagen dentro del formulario */
+.login-box img {
+  width: 60%;
+  height: auto;
+  border-radius: 20px;
   margin-bottom: 30px;
-  position: absolute;
-  top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos de los inputs */
+.input-group {
+  margin-bottom: 25px;
+  text-align: left;
   width: 100%;
 }
 
-form {
-  background-color: var(--card-bg-color);
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px var(--card-shadow);
+.input-group label {
+  font-weight: bold;
+  color: #6d4c41;
+}
+
+.input-group input {
   width: 100%;
-  max-width: 400px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: absolute; /* Cambiado a absolute para centrar correctamente */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Esto centra el formulario en la pantalla */
-  z-index: 1;
-}
-
-form:hover {
-  transform: translate(-50%, -50%) translateY(-5px); /* Mantener el centro y el efecto hover */
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
-}
-
-div {
-  margin-bottom: 20px;
-}
-
-label {
-  font-weight: 500;
-  color: var(--heading-color);
-  display: block;
-  margin-bottom: 8px;
-}
-
-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background-color: var(--input-bg-color);
-  color: var(--text-color);
-  font-size: 1em;
-  transition: all 0.3s ease;
-}
-
-input:focus {
-  outline: none;
-  border-color: var(--focus-border-color);
-  background-color: #fff;
-  box-shadow: 0 0 5px var(--focus-shadow-color);
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: var(--primary-hover);
-}
-
-button:active {
-  background-color: var(--primary-active);
-}
-.error-message {
-  background-color: var(--error-bg-color);
-  color: var(--error-text-color);
   padding: 15px;
-  border: 1px solid var(--error-border-color);
-  border-radius: 5px;
-  position: fixed;
-  bottom: 0;  /* Fijamos la posición en la parte inferior de la pantalla */
-  left: 0;
-  width: 100%;
-  text-align: center;
-  z-index: 10;
+  border: 2px solid #a67640;
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  font-size: 16px;
+  color: #6d4c41;
 }
 
-
-/* Reset de estilos por defecto */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Efecto al hacer focus en los inputs */
+.input-group input:focus {
+  border-color: #8b5a2b;
+  box-shadow: 0px 0px 12px rgba(139, 90, 43, 0.5);
 }
 
-/* Estilos generales */
-body {
-  background-color: #f4f7fc;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  height: 100vh;
-  margin: 0;
-  flex-direction: column;
-}
-
-/* Estilo del título */
-header {
-  background-color: #4e73df; /* Color azul */
+/* Botón con efecto */
+button {
+  background: linear-gradient(to right, #a67640, #8b5a2b);
   color: white;
-  padding: 50px 0;
+  border: none;
+  padding: 15px 25px;
   width: 100%;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Efecto hover en el botón */
+button:hover {
+  background: linear-gradient(to right, #8b5a2b, #6d4c41);
+  transform: translateY(-4px);
+  box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Mensaje de error */
+.error-message {
+  margin-top: 5px;
+  color: #ff4e4e; /* Color de texto rojo intenso */
+  font-weight: 600;
+  display: none; /* Oculto por defecto */
+  font-size: 16px; /* Aumento el tamaño para hacerlo más legible */
+  background-color: rgba(255, 0, 0, 0.1); /* Fondo rojo suave */
+  padding: 5px;
+  border-radius: 4px; /* Bordes redondeados */
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
-  position: relative;
-  z-index: 10;
-  border-bottom: 5px solid #f0f0f0;
-  margin-top: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra sutil para dar profundidad */
+  animation: fadeIn 0.5s ease-in-out; /* Animación para que aparezca suavemente */
 }
 
-/* Estilo del menú */
-nav {
-  background-color: #ffffff; /* Fondo blanco */
-  width: 100%;
-  padding: 15px 0;
-  position: absolute;
-  top: 120px; /* Aumento del valor de 'top' para bajarlo más */
-  z-index: 1000;
-  border-radius: 10px; /* Bordes redondeados */
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  transition: all 0.3s ease;
-}
-
-/* Efecto hover en la barra de navegación */
-nav:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); /* Efecto de sombra más pronunciada al pasar el mouse */
-}
-
-/* Estilo de los enlaces */
-nav ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  margin: 0;
-}
-
-nav ul li {
-  margin-right: 40px;
-  position: relative;
-}
-
-nav ul li a {
-  color: #333;
-  text-decoration: none;
-  font-size: 1.2rem;
-  font-weight: 500;
-  text-transform: uppercase; /* Transformar a mayúsculas */
-  letter-spacing: 1px; /* Espaciado entre letras */
-  position: relative;
-  transition: all 0.3s ease; /* Transiciones suaves */
-  padding-bottom: 10px;
-}
-
-nav ul li a:hover {
-  color: #4e73df; /* Color de enlace al pasar el ratón */
-  transform: translateY(-5px); /* Efecto de movimiento hacia arriba */
-}
-
-/* Subrayado animado */
-nav ul li a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 3px;
-  background-color: #4e73df; /* Color azul para subrayado */
-  transition: width 0.3s ease;
-}
-
-nav ul li a:hover::after {
-  width: 100%; /* Subrayado se expande al hacer hover */
-}
-
-/* Estilo del menú responsivo */
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
+/* Animación para que el mensaje de error aparezca con suavidad */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-
-  header {
-    padding: 30px 0; /* Ajustar padding para pantallas pequeñas */
-    margin-top: 20px; /* Reducir margen superior */
-  }
-
-  nav {
-    padding: 10px 0;
-    top: 180px; /* Ajustar la posición del menú en dispositivos pequeños */
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  nav ul {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  nav ul li {
-    margin-right: 0;
-    margin-bottom: 20px;
-  }
-
-  nav ul li a {
-    font-size: 1rem; /* Reducir el tamaño de fuente en dispositivos pequeños */
-  }
-
-  /* Aumentar el tamaño de los enlaces del menú en pantallas más grandes */
-  @media (min-width: 769px) {
-    nav ul li a {
-      font-size: 1.2rem; /* Tamaño de fuente para pantallas más grandes */
-    }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Reset de estilos por defecto */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Estilos generales */
-body {
-  background-color: #f4f7fc;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  height: 100vh;
-  margin: 0;
-  flex-direction: column;
-}
-
-/* Estilo del título */
-header {
-  background-color: #4e73df;
-  color: white;
-  padding: 50px 0;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 10;
-  border-bottom: 5px solid #f0f0f0;
-  margin-top: 40px;
-}
-
-/* Estilo del menú */
-nav {
-  background-color: #ffffff;
-  width: 100%;
-  padding: 15px 0;
-  position: absolute;
-  top: 120px;
-  z-index: 1000;
-  border-radius: 10px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-/* Efecto hover en la barra de navegación */
-nav:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-/* Estilo de los enlaces */
-nav ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  margin: 0;
-}
-
-nav ul li {
-  margin-right: 40px;
-  position: relative;
-}
-
-nav ul li a {
-  color: #333;
-  text-decoration: none;
-  font-size: 1.2rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  position: relative;
-  transition: all 0.3s ease;
-  padding-bottom: 10px;
-}
-
-nav ul li a:hover {
-  color: #4e73df;
-  transform: translateY(-5px);
-}
-
-/* Subrayado animado */
-nav ul li a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 3px;
-  background-color: #4e73df;
-  transition: width 0.3s ease;
-}
-
-nav ul li a:hover::after {
-  width: 100%;
-}
-
-/* Estilo del submenú */
-nav ul li .submenu {
+/* Mostrar el mensaje de error */
+.error-message.show {
   display: block;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  padding: 10px 0;
-  min-width: 180px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
 }
 
-nav ul li .submenu li {
-  margin: 0;
-}
-
-nav ul li .submenu li a {
-  font-size: 1rem;
-  padding: 10px 20px;
-  text-transform: none;
-  letter-spacing: normal;
-  color: #333;
-  display: block;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-nav ul li .submenu li a:hover {
-  background-color: #f4f7fc;
-  color: #4e73df;
-}
-
-/* Mostrar el submenú al pasar el ratón */
-nav ul li:hover .submenu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-/* Estilo del menú responsivo */
-@media (max-width: 768px) {
-  body {
-    flex-direction: column;
+/* Estilos responsivos */
+@media (max-width: 480px) {
+  .login-box {
+      width: 85%;
+      padding: 20px;
   }
 
-  header {
-    padding: 30px 0;
-    margin-top: 20px;
+  .login-box h1 {
+      font-size: 26px;
   }
 
-}
-/* Fondo del menú */
-nav {
-    background-image: url('fondo.jpg'); /* Ruta de la imagen */
-    background-size: cover; /* Ajusta la imagen al tamaño del contenedor */
-    background-position: center; /* Centra la imagen */
-    padding: 10px; /* Espaciado dentro del menú */
-}
+  .input-group input,
+  button {
+      font-size: 14px;
+  }
 
-/* Estilos generales para el menú */
-.menu {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+  .login-box img {
+      width: 70%;
+  }
 }
-
-.menu-item {
-    position: relative;
-}
-
-.menu-item a {
-    display: block;
-    padding: 10px;
-    color: #fff; /* Color del texto */
-    text-decoration: none;
-    background-color: rgba(17, 85, 51, 0.774); /* Fondo semi-transparente para el texto */
-}
-
-.menu-item a:hover {
-    background-color: rgba(0, 0, 0, 0.7); /* Efecto hover */
-}
-
-/* Submenú */
-.submenu {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: rgba(0, 0, 0, 0.8); /* Fondo del submenú */
-    list-style-type: none;
-    padding: 0;
-}
-
-.menu-item:hover .submenu {
-    display: block; /* Muestra el submenú cuando se pasa el mouse sobre el item */
-}
-
-.submenu li a {
-    padding: 8px;
-    color: #fff;
-    text-decoration: none;
-}
-
-.submenu li a:hover {
-    background-color: rgba(0, 0, 0, 0.9);
-}
-

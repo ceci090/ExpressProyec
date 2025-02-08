@@ -3,139 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú Desplegable con Submenús</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Tortillería Tradicional</title>
     <style>
-        /* Estilos del menú */
-        .submenu {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-            min-width: 160px;
-            z-index: 1;
-        }
-
-        .menu-item {
-            position: relative;
-            list-style-type: none;
-            display: inline-block;
-            padding: 10px;
-        }
-
-        .menu-item:hover .submenu {
-            display: block;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        ul.menu {
-            padding: 0;
+        body {
+            font-family: 'Arial', sans-serif;
             margin: 0;
-            list-style-type: none;
-            background-color: #333;
+            padding: 0;
+            background-color: #f8f1e5;
         }
 
-        ul.menu li a {
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            display: block;
-        }
+        /* Menú de navegación */
+        nav {
+    background: rgba(139, 90, 43, 0.9); /* Color con transparencia */
+    backdrop-filter: blur(10px); /* Efecto de desenfoque */
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
 
-        ul.menu li a:hover {
-            background-color: #575757;
-        }
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
 
-        /* Estilos del breadcrumb */
-        .breadcrumb {
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px;
-            background-color: #f4f4f4;
-            margin: 10px 0;
-        }
+nav ul li {
+    margin: 0 15px;
+    position: relative;
+}
 
-        .breadcrumb a {
-            text-decoration: none;
-            color: #333;
-            margin-right: 5px;
-        }
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 12px 20px;
+    display: block;
+    font-size: 16px;
+    border-radius: 30px;
+    transition: all 0.3s ease-in-out;
+    background: linear-gradient(to right, #a67640, #8b5a2b);
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
+}
 
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
+nav ul li a:hover {
+    background: linear-gradient(to right, #8b5a2b, #6d4c41);
+    transform: translateY(-3px);
+    box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+}
 
-        header h1 {
-            text-align: center;
-            padding: 20px;
+/* Efecto de subrayado animado */
+nav ul li a::after {
+    content: "";
+    display: block;
+    height: 3px;
+    width: 0;
+    background: white;
+    transition: width 0.3s ease-in-out;
+    margin: auto;
+    border-radius: 10px;
+}
+
+nav ul li a:hover::after {
+    width: 100%;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    nav ul li {
+        margin: 10px 0;
+    }
+}
+
+
+        /* Breadcrumbs Estilizados */
+.breadcrumbs {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 10px auto;
+    width: fit-content;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.breadcrumbs ol {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumbs ol li {
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumbs ol li a {
+    text-decoration: none;
+    color: #6d4c41;
+    font-weight: bold;
+    background: linear-gradient(to right, #f4e1c6, #e4c59e);
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease-in-out;
+    border: 2px solid #a67640;
+    display: inline-block;
+    font-size: 14px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.breadcrumbs ol li a:hover {
+    background: linear-gradient(to right, #a67640, #8b5a2b);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.breadcrumbs ol li::after {
+    content: "❯";
+    font-size: 14px;
+    color: #8b5a2b;
+    margin: 0 12px;
+}
+
+.breadcrumbs ol li:last-child::after {
+    content: "";
+}
+
+.breadcrumbs ol li:last-child a {
+    background: #8b5a2b;
+    color: white;
+    cursor: default;
+    pointer-events: none;
+    border: none;
+    font-weight: bold;
+}
+
+
+        /* Contenido principal */
+      
+.container {
+    text-align: center;
+    padding: 40px 20px;
+    max-width: 900px;
+    margin: auto;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 15px;
+    box-shadow: 5px 10px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Título con diseño más elegante */
+.container h1 {
+    color: #8b5a2b;
+    font-size: 36px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background: linear-gradient(to right, #8b5a2b, #d6a571);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Párrafo con mejor diseño */
+.container p {
+    max-width: 700px;
+    margin: 15px auto;
+    color: #4a4a4a;
+    font-size: 18px;
+    line-height: 1.6;
+    font-weight: 400;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Añadir una animación suave */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+
+        /* Responsividad */
+        @media (max-width: 600px) {
+            nav ul {
+                flex-direction: column;
+                text-align: center;
+            }
+            .breadcrumbs ol {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb">
-            <a href="inicio.htm">Inicio</a> > 
-            <a href="perfil.htm">Perfil</a> > 
-            <a href="configuracion.htm">Configuración</a>
-        </nav>
-       
-    </header>
 
+    <!-- Menú de navegación -->
     <nav>
-        <ul class="menu">
-            <li class="menu-item">
-                <a href="inicio.htm">Inicio</a>
-                <ul class="submenu">
-                    <li><a href="subinicio1.htm">Subinicio 1</a></li>
-                    <li><a href="subinicio2.htm">Subinicio 2</a></li>
-                </ul>
-            </li>
-            <li class="menu-item">
-                <a href="perfil.htm">Perfil</a>
-                <ul class="submenu">
-                    <li><a href="datos_personales.htm">Datos Personales</a></li>
-                    <li><a href="configuracion.htm">Configuración</a></li>
-                </ul>
-            </li>
-            <li class="menu-item">
-                <a href="servicios.htm">Servicios</a>
-                <ul class="submenu">
-                    <li><a href="servicio1.htm">Servicio 1</a></li>
-                    <li><a href="servicio2.htm">Servicio 2</a></li>
-                </ul>
-            </li>
-            <li class="menu-item">
-                <a href="contacto.htm">Contacto</a>
-                <ul class="submenu">
-                    <li><a href="ubicacion.htm">Ubicación</a></li>
-                    <li><a href="formulario.htm">Formulario</a></li>
-                </ul>
-            </li>
-            <li class="menu-item">
-                <a href="cerrar_sesion.htm">Cerrar sesión</a>
-            </li>
+        <ul>
+            <li><a href="menu.html">Inicio</a></li>
+            <li><a href="nosotros.html">Nosotros</a></li>
+            <li><a href="productos.html">Productos</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+            <li><a href="Serrar sesion.html">Serrar sesión</a></li>
         </ul>
     </nav>
 
-    <script>
-        window.onload = function() {
-            const saludo = document.createElement('p');
-            saludo.textContent = '¡Hola, Ceci! Bienvenido a tu perfil.';
-            document.querySelector('header').appendChild(saludo);
-        }
-    </script>
-    
+    <!-- Breadcrumbs -->
+    <div class="breadcrumbs">
+        <ol>
+            <li><a href="menu.html">Inicio</a></li>
+            <li><a href="productos.html">Productos</a></li>
+            <li><a href="#">Tortillas de Maíz</a></li>
+        </ol>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <h1>Bienvenido a la Tortillería Tradicional</h1>
+        <p>Ofrecemos las mejores tortillas hechas con maíz 100% natural. Frescas, deliciosas y con el auténtico sabor de la tradición mexicana.</p>
+    </div>
+
 </body>
 </html>
