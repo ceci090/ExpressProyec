@@ -13,7 +13,10 @@ app.get('/', (req, res) => {
 
 // Ruta para la página de menú (menu.htm)
 app.get('/menu', (req, res) => {
-  res.sendFile(path.join(__dirname, 'menu.htm')); // Ruta para la página de menú
+  res.sendFile(path.join(__dirname, 'menu.html')); // Ruta para la página de menú
+});
+app.get('/nosotros', (req, res) => {
+  res.sendFile(path.join(__dirname, 'nosotros.html')); // Ruta para la página de menú
 });
 
 // Iniciar el servidor

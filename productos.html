@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tortillería Tradicional</title>
+    <title>Productos - Tortillería</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -315,37 +316,114 @@ nav ul li a:hover {
         justify-content: center;
     }
 }
+/* Imagenes */
+/* Estilos generales de la sección */
+.productos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    justify-items: center;
+}
 
-    </style>
+/* Estilo para cada artículo del producto */
+.producto {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.producto:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para las imágenes */
+.producto img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* Efecto en la imagen cuando pasa el cursor */
+.producto:hover img {
+    transform: scale(1.05);
+}
+
+/* Estilos para los títulos */
+.producto h3 {
+    font-size: 1.5rem;
+    margin: 15px 0;
+    color: #333;
+}
+
+/* Estilo para las descripciones */
+.producto p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 0;
+}
+
+
     </style>
 </head>
 <body>
-
-    <!-- Menú de navegación -->
-    <nav>
-        <ul>
-            <li><a href="menu.html">Inicio</a></li>
-            <li><a href="nosotros.html">Nosotros</a></li>
-            <li><a href="productos.html">Productos</a></li>
+    <header>
+      
+        <nav>
+            <ul>
+                <li><a href="menu.html">Inicio</a></li>
+                <li><a href="nosotros.html">Nosotros</a></li>
+                <li><a href="productos.html">Productos</a></li>
             <li><a href="Tienda en línea.html">Tienda en línea</a></li>
-            <li><a href="javascript:void(0);" onclick="handleLogout()">Cerrar sesión</a></li>
-        </ul>
-    </nav>
+                <li><a href="javascript:void(0);" onclick="handleLogout()">Cerrar sesión</a></li>
 
-    <!-- Breadcrumbs -->
-    <div class="breadcrumbs">
-        <ol>
-            <li><a href="menu.html">Inicio</a></li>
-            <li><a href="productos.html">Productos</a></li>
-            <li><a href="#">Tortillas de Maíz</a></li>
-        </ol>
-    </div>
 
-    <!-- Contenido principal -->
+            </ul>
+        </nav>
+    
+        <!-- Breadcrumbs -->
+        <div class="breadcrumbs">
+            <ol>
+                <li><a href="menu.html">Inicio</a></li>
+                <li><a href="productos.html">Productos</a></li>
+                <li><a href="#">Tortillas de Maíz</a></li>
+            </ol>
+        </div>
+    </header>
     <div class="container">
-        <h1>Bienvenido a la Tortillería Tradicional</h1>
-        <p>Ofrecemos las mejores tortillas hechas con maíz 100% natural. Frescas, deliciosas y con el auténtico sabor de la tradición mexicana.</p>
-    </div>
+    <main>
+        <h1>Tortillería Tradicional</h1>
+        <h2>Nuestros Productos</h2>
+
+        <section class="productos">
+            <article class="producto">
+                <img src="tortilla.jpg" alt="Tortillas de maíz">
+                <h3>Tortillas de Maíz</h3>
+                <p>Elaboradas con maíz 100% natural. Suaves y frescas todos los días.</p>
+            </article>
+            <article class="producto">
+                <img src="masa.jpg" alt="Masa de maíz">
+                <h3>Masa de Maíz</h3>
+                <p>Ideal para preparar tamales, sopes y otros platillos tradicionales.</p>
+            </article>
+            <article class="producto">
+                <img src="totopos.jpg" alt="Totopos">
+                <h3>Totopos</h3>
+                <p>Perfectos para acompañar con guacamole o cualquier salsa.</p>
+            </article>
+        </section>
+    </main>
+</div>
+    <footer>
+        <p>&copy; 2025 Tortillería Tradicional. Todos los derechos reservados.</p>
+    </footer>
     <script>
         function handleLogout() {
             // Aquí puedes realizar las acciones para cerrar la sesión (ejemplo: borrar cookies o tokens)
@@ -354,5 +432,6 @@ nav ul li a:hover {
             window.location.href = 'index.html';  // Cambia 'login.html' al nombre de tu página de login
         }
     </script>
+    
 </body>
 </html>

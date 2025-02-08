@@ -5,16 +5,16 @@
   box-sizing: border-box;
   font-family: 'Poppins', sans-serif;
 }
+
 /* Fondo animado con gradiente y movimiento sutil */
 body {
-  background: linear-gradient(to right, #eeb179, #d6a571, #c8a865);
+  background: linear-gradient(to right, #8b5a2b, #d6a571, #ffefba); /* Colores cálidos y suaves */
   background-size: 200% 200%;
   animation: gradientAnimation 6s ease infinite;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', sans-serif;
   position: relative;
   overflow: hidden;
 }
@@ -22,16 +22,15 @@ body {
 /* Animación de fondo para un gradiente en movimiento */
 @keyframes gradientAnimation {
   0% {
-      background-position: 0% 50%;
+    background-position: 0% 50%;
   }
   50% {
-      background-position: 100% 50%;
+    background-position: 100% 50%;
   }
   100% {
-      background-position: 0% 50%;
+    background-position: 0% 50%;
   }
 }
-
 
 /* Filtro de desenfoque para todo el body */
 body::before {
@@ -45,45 +44,44 @@ body::before {
   z-index: -1;
 }
 
-/* Caja de login con diseño suave y borde redondeado */
+/* Caja de login con diseño suave y borde resaltado en naranja */
 .login-box {
-  background: rgba(255, 255, 255, 0.4); /* Fondo con mayor transparencia */
-  backdrop-filter: blur(10px); /* Desenfoque menos intenso para un fondo más suave */
+  background: rgba(255, 255, 255, 0.85); /* Fondo blanco con transparencia */
+  backdrop-filter: blur(12px); /* Desenfoque suave */
   padding: 50px 40px;
   border-radius: 20px;
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1); /* Sombra más difusa y suave */
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1), 0 0 20px #ff9800; /* Efecto glow naranja */
   text-align: center;
   width: 400px;
-  border: 1px solid rgba(128, 112, 112, 0.3);
+  border: 2px solid #ff9800; /* Borde naranja brillante */
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: all 0.3s ease; /* Suaviza el cambio cuando se realiza alguna acción */
+  transition: all 0.3s ease;
 }
 
-/* Efecto hover para darle un toque dinámico */
+/* Efecto glow al pasar el cursor */
 .login-box:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Sombra más prominente al pasar el cursor */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 25px #ff9800; /* Resalta el glow naranja */
 }
-
 
 /* Título sin degradado */
 .login-box h1 {
-  font-size: 36px; 
+  font-size: 36px;
   margin-bottom: 25px;
-  font-weight: 700; 
-  color: #5e3b1b;
-  text-transform: uppercase; 
-  letter-spacing: 2px; 
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2); 
-  transition: all 0.3s ease; /* Agrego una transición para cuando cambie de estado */
+  font-weight: 700;
+  color: #8b5a2b; /* Color marrón cálido */
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 /* Efecto hover sobre el título */
 .login-box h1:hover {
-  color: #d6a571; /* Cambia de color al pasar el cursor */
-  transform: translateY(-4px); /* Movimiento hacia arriba para hacerlo más dinámico */
-  text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3); /* Aumenta la sombra al hacer hover */
+  color: #d6a571; /* Cambia a un dorado suave */
+  transform: translateY(-4px);
+  text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Estilo para la imagen dentro del formulario */
@@ -104,30 +102,30 @@ body::before {
 
 .input-group label {
   font-weight: bold;
-  color: #6d4c41;
+  color: #8b5a2b; /* Color marrón cálido */
 }
 
 .input-group input {
   width: 100%;
   padding: 15px;
-  border: 2px solid #a67640;
+  border: 2px solid #8b5a2b; /* Borde marrón cálido */
   border-radius: 12px;
   outline: none;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.8); /* Fondo blanco con transparencia */
   transition: all 0.3s ease;
   font-size: 16px;
-  color: #6d4c41;
+  color: #8b5a2b; /* Texto marrón cálido */
 }
 
 /* Efecto al hacer focus en los inputs */
 .input-group input:focus {
-  border-color: #8b5a2b;
-  box-shadow: 0px 0px 12px rgba(139, 90, 43, 0.5);
+  border-color: #d6a571; /* Color dorado suave al hacer focus */
+  box-shadow: 0px 0px 12px rgba(214, 165, 113, 0.5);
 }
 
 /* Botón con efecto */
 button {
-  background: linear-gradient(to right, #a67640, #8b5a2b);
+  background: linear-gradient(to right, #d6a571, #ff9800); /* Degradado dorado a naranja */
   color: white;
   border: none;
   padding: 15px 25px;
@@ -142,10 +140,11 @@ button {
 
 /* Efecto hover en el botón */
 button:hover {
-  background: linear-gradient(to right, #8b5a2b, #6d4c41);
+  background: linear-gradient(to right, #ff9800, #d6a571); /* Cambio de dirección del degradado */
   transform: translateY(-4px);
   box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4);
 }
+
 
 /* Mensaje de error */
 .error-message {
@@ -182,20 +181,20 @@ button:hover {
 /* Estilos responsivos */
 @media (max-width: 480px) {
   .login-box {
-      width: 85%;
-      padding: 20px;
+    width: 85%;
+    padding: 20px;
   }
 
   .login-box h1 {
-      font-size: 26px;
+    font-size: 26px;
   }
 
   .input-group input,
   button {
-      font-size: 14px;
+    font-size: 14px;
   }
 
   .login-box img {
-      width: 70%;
+    width: 70%;
   }
 }
