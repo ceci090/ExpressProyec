@@ -1,0 +1,7 @@
+{
+    "empleados": [
+      { "id": 1, "nombre": "Juan Pérez", "puesto": "Gerente" },
+      { "id": 2, "nombre": "María López", "puesto": "Desarrolladora" }
+    ]
+  }
+  
