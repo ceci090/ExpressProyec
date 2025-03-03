@@ -1,19 +1,21 @@
+require('dotenv').config(); // Cargar variables de entorno
 const express = require('express');
 const sql = require('mssql');
 const cors = require('cors');
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001; // Usa el puerto definido en la nube o el 3001
 
 app.use(cors());
 app.use(express.json());
 
-// Configuración de la base de datos SQL Server
+// Configuración de la base de datos SQL Server con variables de entorno
 const dbConfig = {
-  user: 'sa',
-  password: '123456',
-  server: 'localhost',
-  database: 'Base',
+  user: process.env.DB_USER || 'sa',
+  password: process.env.DB_PASS || '123456',
+  server: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'Base',
+  port: parseInt(process.env.DB_PORT) || 1433,
   options: {
     encrypt: true,
     trustServerCertificate: true,
@@ -29,18 +31,15 @@ async function ejecutarConsulta(query, params = []) {
     // Agregar parámetros si existen
     params.forEach((param) => request.input(param.name, param.type, param.value));
 
-    // Ejecutar la consulta
     let result = await request.query(query);
     return result.recordset;
   } catch (err) {
-    // Aquí se captura cualquier error y se imprime en la consola
-    console.error('Error al ejecutar consulta:', err);
-    return null;  // Retorna null si hay un error en la consulta
+    console.error('❌ Error al ejecutar consulta:', err);
+    return null;
   }
 }
 
-
-// Obtener todos los empleados
+// Rutas de empleados
 app.get('/empleados', async (req, res) => {
   try {
     const empleados = await ejecutarConsulta('SELECT * FROM dbo.Empleados');
@@ -50,7 +49,6 @@ app.get('/empleados', async (req, res) => {
   }
 });
 
-// Agregar un empleado
 app.post('/empleados', async (req, res) => {
   const { nombre, puesto } = req.body;
 
@@ -58,7 +56,7 @@ app.post('/empleados', async (req, res) => {
     return res.status(400).json({ error: 'Nombre y puesto son obligatorios' });
   }
 
-  const query = `INSERT INTO dbo.Empleados (nombre, puesto) VALUES (@nombre, @puesto)`;  
+  const query = `INSERT INTO dbo.Empleados (nombre, puesto) VALUES (@nombre, @puesto)`;
   const params = [
     { name: 'nombre', type: sql.VarChar, value: nombre },
     { name: 'puesto', type: sql.VarChar, value: puesto },
@@ -68,13 +66,11 @@ app.post('/empleados', async (req, res) => {
     await ejecutarConsulta(query, params);
     res.status(201).json({ mensaje: 'Empleado agregado con éxito' });
   } catch (err) {
-    console.error('Error al insertar empleado:', err);
+    console.error('❌ Error al insertar empleado:', err);
     res.status(500).json({ error: 'Error al agregar empleado' });
   }
 });
 
-
-// Editar un empleado
 app.put('/empleados/:id', async (req, res) => {
   const { id } = req.params;
   const { nombre, puesto } = req.body;
@@ -98,7 +94,6 @@ app.put('/empleados/:id', async (req, res) => {
   }
 });
 
-// Eliminar un empleado
 app.delete('/empleados/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -115,5 +110,8 @@ app.delete('/empleados/:id', async (req, res) => {
 
 // Iniciar el servidor
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });
+
+// Exportar app para pruebas (opcional)
+module.exports = app;
