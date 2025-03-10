@@ -1,133 +1,50 @@
 const express = require('express');
 const path = require('path');
-const sql = require('mssql');
+const mysql = require('mysql2');
 const app = express();
-const port = 3001;
+const port = 400;
 
-app.use(express.json()); // Middleware para procesar JSON de todas las rutas
+// Middleware para procesar JSON de todas las rutas
+app.use(express.json());
 
-// Configuración de la base de datos SQL Server
-const dbConfig = {
-  user: 'sa',
-  password: '123456',
-  server: 'localhost',
-  database: 'Base', // Nombre de tu base de datos
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },
-};
-
-// Función para ejecutar consultas SQL
-async function ejecutarConsulta(query, params = []) {
-  try {
-    console.log("Ejecutando consulta:", query);  // Log de la consulta que se ejecuta
-    let pool = await sql.connect(dbConfig);
-    let request = pool.request();
-
-    params.forEach((param) => request.input(param.name, param.type, param.value));
-
-    let result = await request.query(query);
-    return result.recordset;
-  } catch (err) {
-    console.error('Error al ejecutar consulta:', err);  // Log del error
-    return null;
-  }
-}
-
-
-// Servir archivos estáticos desde la carpeta raíz
-app.use(express.static(path.join(__dirname, '/')));
+// Servir archivos estáticos desde la raíz del proyecto (sin carpeta 'public')
+app.use(express.static(__dirname));
 
 // Ruta para la página de inicio (index.html)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html')); // Ruta sin la carpeta 'public'
 });
 
 // Ruta para la página de menú (menu.html)
 app.get('/menu', (req, res) => {
-  res.sendFile(path.join(__dirname, 'menu.html'));
+  res.sendFile(path.join(__dirname, 'menu.html')); // Ruta sin la carpeta 'public'
 });
 
 // Ruta para la página de "Nosotros" (nosotros.html)
 app.get('/nosotros', (req, res) => {
-  res.sendFile(path.join(__dirname, 'nosotros.html'));
+  res.sendFile(path.join(__dirname, 'nosotros.html')); // Ruta sin la carpeta 'public'
 });
 
-// Ruta para obtener todos los empleados
-app.get('/empleados', async (req, res) => {
-  console.log("Solicitud recibida para obtener empleados..."); // Esto es un log
+// Configuración de la conexión a la base de datos MySQL
+const dbConfig = {
+  host: "127.0.0.1", // Asegúrate de que tu MySQL esté en el puerto correcto
+  user: "u668721882_rbMqU", // Cambia según tu configuración
+  password: "Kcm42990", // La contraseña de la base de datos
+  database: "u668721882_r1lFO",
+};
 
-  try {
-    const empleados = await ejecutarConsulta('SELECT * FROM dbo.Empleados');
-    console.log("Empleados obtenidos:", empleados); // Log de los empleados obtenidos
-    res.json(empleados);
-  } catch (error) {
-    console.error("Error al obtener empleados:", error); // Log de error
-    res.status(500).json({ error: 'Error al obtener empleados' });
-  }
-});
+// Crear conexión a la base de datos MySQL
+const pool = mysql.createPool(dbConfig);
 
-
-// Ruta para agregar un empleado
-app.post('/empleados', async (req, res) => {
-  const { nombre, puesto } = req.body;
-
-  if (!nombre || !puesto) {
-    return res.status(400).json({ error: 'Nombre y puesto son obligatorios' });
-  }
-
-  const query = 'INSERT INTO dbo.Empleados (nombre, puesto) VALUES (@nombre, @puesto)';
-  const params = [
-    { name: 'nombre', type: sql.VarChar, value: nombre },
-    { name: 'puesto', type: sql.VarChar, value: puesto },
-  ];
-
-  const result = await ejecutarConsulta(query, params);
-  if (result) {
-    res.status(201).json({ mensaje: 'Empleado agregado con éxito' });
-  } else {
-    res.status(500).json({ error: 'Error al agregar el empleado' });
-  }
-});
-
-// Ruta para editar un empleado
-app.put('/empleados/:id', async (req, res) => {
-  const { id } = req.params;
-  const { nombre, puesto } = req.body;
-
-  if (!nombre || !puesto) {
-    return res.status(400).json({ error: 'Nombre y puesto son obligatorios' });
-  }
-
-  const query = 'UPDATE dbo.Empleados SET nombre = @nombre, puesto = @puesto WHERE id = @id';
-  const params = [
-    { name: 'nombre', type: sql.VarChar, value: nombre },
-    { name: 'puesto', type: sql.VarChar, value: puesto },
-    { name: 'id', type: sql.Int, value: id },
-  ];
-
-  const result = await ejecutarConsulta(query, params);
-  if (result) {
-    res.json({ mensaje: 'Empleado actualizado con éxito' });
-  } else {
-    res.status(500).json({ error: 'Error al actualizar el empleado' });
-  }
-});
-
-// Ruta para eliminar un empleado
-app.delete('/empleados/:id', async (req, res) => {
-  const { id } = req.params;
-
-  const query = 'DELETE FROM dbo.Empleados WHERE id = @id';
-  const params = [{ name: 'id', type: sql.Int, value: id }];
-
-  const result = await ejecutarConsulta(query, params);
-  if (result) {
-    res.json({ mensaje: 'Empleado eliminado con éxito' });
-  } else {
-    res.status(500).json({ error: 'Error al eliminar el empleado' });
-  }
+// Ruta para obtener datos de la base de datos (ejemplo)
+app.get('/api/data', (req, res) => {
+  pool.query('SELECT * FROM your_table', (err, results) => {
+    if (err) {
+      console.error('Error al consultar la base de datos:', err);
+      return res.status(500).send('Error al consultar la base de datos');
+    }
+    res.json(results); // Devuelve los datos de la consulta
+  });
 });
 
 // Iniciar el servidor

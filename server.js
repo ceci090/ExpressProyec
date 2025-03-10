@@ -1,117 +1,95 @@
-require('dotenv').config(); // Cargar variables de entorno
-const express = require('express');
-const sql = require('mssql');
-const cors = require('cors');
+express = require('express');
+const mysql = require("mysql2");
+const cors = require("cors");
 
 const app = express();
-const port = process.env.PORT || 3001; // Usa el puerto definido en la nube o el 3001
+const PORT = 4000;
 
-app.use(cors());
+// Middleware
 app.use(express.json());
+app.use(cors());
 
-// Configuración de la base de datos SQL Server con variables de entorno
-const dbConfig = {
-  user: process.env.DB_USER || 'sa',
-  password: process.env.DB_PASS || '123456',
-  server: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_NAME || 'Base',
-  port: parseInt(process.env.DB_PORT) || 1433,
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },
-};
-
-// Función para ejecutar consultas SQL
-async function ejecutarConsulta(query, params = []) {
-  try {
-    let pool = await sql.connect(dbConfig);
-    let request = pool.request();
-
-    // Agregar parámetros si existen
-    params.forEach((param) => request.input(param.name, param.type, param.value));
-
-    let result = await request.query(query);
-    return result.recordset;
-  } catch (err) {
-    console.error('❌ Error al ejecutar consulta:', err);
-    return null;
-  }
-}
-
-// Rutas de empleados
-app.get('/empleados', async (req, res) => {
-  try {
-    const empleados = await ejecutarConsulta('SELECT * FROM dbo.Empleados');
-    res.json(empleados);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener empleados' });
-  }
+// Obtener todos los empleados
+app.get("/empleados", (req, res) => {
+    pool.query("SELECT * FROM empleados", (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(results);
+    });
 });
 
-app.post('/empleados', async (req, res) => {
-  const { nombre, puesto } = req.body;
+// Obtener un empleado por ID
+app.get("/empleados/:id", (req, res) => {
+    const { id } = req.params;
+    pool.query("SELECT * FROM empleados WHERE id = ?", [id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: "Empleado no encontrado" });
+        }
+        res.json(results[0]);
+    });
+});
+app.post("/api.php", (req, res) => {
+    const { nombre, puesto, correo, telefono } = req.body;
 
-  if (!nombre || !puesto) {
-    return res.status(400).json({ error: 'Nombre y puesto son obligatorios' });
-  }
+    if (!nombre || !puesto || !correo || !telefono) {
+        return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
 
-  const query = `INSERT INTO dbo.Empleados (nombre, puesto) VALUES (@nombre, @puesto)`;
-  const params = [
-    { name: 'nombre', type: sql.VarChar, value: nombre },
-    { name: 'puesto', type: sql.VarChar, value: puesto },
-  ];
-
-  try {
-    await ejecutarConsulta(query, params);
-    res.status(201).json({ mensaje: 'Empleado agregado con éxito' });
-  } catch (err) {
-    console.error('❌ Error al insertar empleado:', err);
-    res.status(500).json({ error: 'Error al agregar empleado' });
-  }
+    // Lógica para insertar el nuevo empleado en la base de datos
+    const query = 'INSERT INTO empleados (nombre, puesto, correo, telefono) VALUES (?, ?, ?, ?)';
+    pool.query(query, [nombre, puesto, correo, telefono], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al insertar en la base de datos', details: err });
+        }
+        res.json({
+            success: true,
+            id: results.insertId, // Suponiendo que tu DB esté configurada para autoincrementar
+            nombre,
+            puesto,
+            correo,
+            telefono
+        });
+    });
 });
 
-app.put('/empleados/:id', async (req, res) => {
+// Eliminar un empleado
+app.delete("/empleados/:id", (req, res) => {
+    const { id } = req.params;
+    pool.query("DELETE FROM empleados WHERE id = ?", [id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: "Empleado eliminado correctamente" });
+    });
+});
+
+// Actualizar los datos de un empleado
+app.put("/empleados/:id", (req, res) => {
   const { id } = req.params;
-  const { nombre, puesto } = req.body;
+  const { nombre, puesto, correo, telefono } = req.body;
 
-  if (!nombre || !puesto) {
-    return res.status(400).json({ error: 'Nombre y puesto son obligatorios' });
+  if (!nombre || !puesto || !correo || !telefono) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
   }
 
-  const query = `UPDATE dbo.Empleados SET nombre = @nombre, puesto = @puesto WHERE id = @id`;
-  const params = [
-    { name: 'nombre', type: sql.VarChar, value: nombre },
-    { name: 'puesto', type: sql.VarChar, value: puesto },
-    { name: 'id', type: sql.Int, value: id },
-  ];
-
-  try {
-    await ejecutarConsulta(query, params);
-    res.json({ mensaje: 'Empleado actualizado con éxito' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar empleado' });
-  }
-});
-
-app.delete('/empleados/:id', async (req, res) => {
-  const { id } = req.params;
-
-  const query = `DELETE FROM dbo.Empleados WHERE id = @id`;
-  const params = [{ name: 'id', type: sql.Int, value: id }];
-
-  try {
-    await ejecutarConsulta(query, params);
-    res.json({ mensaje: 'Empleado eliminado con éxito' });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar empleado' });
-  }
+  // Lógica para actualizar los datos del empleado en la base de datos
+  const query = 'UPDATE empleados SET nombre = ?, puesto = ?, correo = ?, telefono = ? WHERE id = ?';
+  pool.query(query, [nombre, puesto, correo, telefono, id], (err, results) => {
+      if (err) {
+          return res.status(500).json({ error: 'Error al actualizar en la base de datos', details: err });
+      }
+      if (results.affectedRows === 0) {
+          return res.status(404).json({ message: "Empleado no encontrado" });
+      }
+      res.json({ success: true, message: "Empleado actualizado correctamente" });
+  });
 });
 
 // Iniciar el servidor
-app.listen(port, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
-
-// Exportar app para pruebas (opcional)
-module.exports = app;

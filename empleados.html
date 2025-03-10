@@ -3,8 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empleados</title>
+    <title>Gestión de Empleados</title>
     <link rel="stylesheet" href="/empleados.css">
+    <script>
+        const API_URL = "https://palegreen-starling-110684.hostingersite.com/api.php";
+        let empleadoEditando = null;
+        let empleados = [];
+        let paginaActual = 1;
+        const empleadosPorPagina = 5;
+
+        // Función para cargar empleados
+        async function cargarEmpleados() {
+            try {
+                const respuesta = await fetch(API_URL);
+                empleados = await respuesta.json();
+                const empleadosMostrar = empleados.slice((paginaActual - 1) * empleadosPorPagina, paginaActual * empleadosPorPagina);
+
+                const tabla = document.getElementById("tabla-empleados").getElementsByTagName('tbody')[0];
+                tabla.innerHTML = empleadosMostrar.map(emp => `
+                    <tr>
+                        <td>${emp.id}</td>
+                        <td>${emp.nombre}</td>
+                        <td>${emp.puesto}</td>
+                        <td>${emp.correo}</td>
+                        <td>${emp.telefono}</td>
+                        <td>
+                            <button class="edit-btn" onclick="editarEmpleado(${emp.id}, '${emp.nombre}', '${emp.puesto}', '${emp.correo}', '${emp.telefono}')">Editar</button>
+                            <button class="btn-eliminar" onclick="eliminarEmpleado(${emp.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join("");
+
+                actualizarPaginacion();
+            } catch (error) {
+                console.error("Error al cargar los empleados:", error);
+                mostrarMensaje("Hubo un problema al cargar los empleados.");
+            }
+        }
+
+        // Función para eliminar un empleado
+        async function eliminarEmpleado(id) {
+            if (confirm("¿Estás seguro de que quieres eliminar este empleado?")) {
+                try {
+                    const response = await fetch(`${API_URL}?id=${id}`, {
+                        method: 'DELETE',
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("Empleado eliminado correctamente");
+                        cargarEmpleados(); // Recargar la lista de empleados después de la eliminación
+                    } else {
+                        mostrarMensaje("Error al eliminar el empleado.");
+                    }
+                } catch (error) {
+                    console.error("Error al eliminar el empleado:", error);
+                    mostrarMensaje("Hubo un problema al eliminar el empleado.");
+                }
+            }
+        }
+
+        // Actualización de la paginación
+        function actualizarPaginacion() {
+            const totalPaginas = Math.ceil(empleados.length / empleadosPorPagina);
+            const paginacion = document.getElementById("paginacion");
+            paginacion.innerHTML = `
+                <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+                <span>Página ${paginaActual} de ${totalPaginas}</span>
+                <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+            `;
+        }
+
+        // Cambiar la página de empleados
+        function cambiarPagina(nuevaPagina) {
+            const totalPaginas = Math.ceil(empleados.length / empleadosPorPagina);
+            if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+                paginaActual = nuevaPagina;
+                cargarEmpleados();
+            }
+        }
+
+        function mostrarFormulario() {
+            document.getElementById("modal").style.display = "block";
+        }
+
+        function cerrarFormulario() {
+            document.getElementById("modal").style.display = "none";
+            document.getElementById("form-empleado").reset();
+            empleadoEditando = null;
+            limpiarMensajes();
+        }
+
+        // Mostrar mensaje de error
+        function mostrarMensaje(mensaje) {
+            const mensajeDiv = document.getElementById("mensaje-error");
+            mensajeDiv.textContent = mensaje;
+            mensajeDiv.style.display = "block";
+        }
+
+        // Limpiar los mensajes de error
+        function limpiarMensajes() {
+            const mensajeDiv = document.getElementById("mensaje-error");
+            mensajeDiv.textContent = "";
+            mensajeDiv.style.display = "none";
+        }
+
+        // Validación y guardado de empleado
+        async function guardarEmpleado() {
+            limpiarMensajes();
+
+            const nombre = document.getElementById("nombre").value;
+            const puesto = document.getElementById("puesto").value;
+            const correo = document.getElementById("correo").value;
+            const telefono = document.getElementById("telefono").value;
+
+            if (!validarCampos(nombre, puesto, correo, telefono)) return;
+
+            const empleadoData = { nombre, puesto, correo, telefono };
+
+            try {
+                let response;
+                if (empleadoEditando) {
+                    empleadoData.id = empleadoEditando.id;
+                    response = await fetch(API_URL, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(empleadoData)
+                    });
+                } else {
+                    response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(empleadoData)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(empleadoEditando ? "Empleado actualizado correctamente" : "Empleado agregado correctamente");
+                    cargarEmpleados();
+                    cerrarFormulario();
+                } else {
+                    mostrarMensaje(empleadoEditando ? "Error al actualizar el empleado" : "Error al agregar el empleado");
+                }
+            } catch (error) {
+                console.error("Error al guardar el empleado:", error);
+                mostrarMensaje("Hubo un problema al guardar el empleado.");
+            }
+        }
+
+        function validarCampos(nombre, puesto, correo, telefono) {
+            const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
+            const puestoRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
+            const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            const telefonoRegex = /^[0-9]{10}$/;
+
+            if (!nombre || !nombreRegex.test(nombre)) {
+                mostrarMensaje("Por favor ingresa un nombre válido (solo letras).");
+                return false;
+            }
+
+            if (!puesto || !puestoRegex.test(puesto)) {
+                mostrarMensaje("Por favor ingresa un puesto válido (solo letras).");
+                return false;
+            }
+
+            if (!correo || !correoRegex.test(correo)) {
+                mostrarMensaje("Por favor ingresa un correo electrónico válido.");
+                return false;
+            }
+
+            if (!telefono || !telefonoRegex.test(telefono)) {
+                mostrarMensaje("Por favor ingresa un número de teléfono válido (10 dígitos).");
+                return false;
+            }
+
+            return true;
+        }
+
+        function editarEmpleado(id, nombre, puesto, correo, telefono) {
+            empleadoEditando = { id, nombre, puesto, correo, telefono };
+            document.getElementById("nombre").value = nombre;
+            document.getElementById("puesto").value = puesto;
+            document.getElementById("correo").value = correo;
+            document.getElementById("telefono").value = telefono;
+            mostrarFormulario();
+        }
+
+        document.addEventListener("DOMContentLoaded", cargarEmpleados);
+    </script>
 </head>
 <body>
     <header>
@@ -19,111 +207,45 @@
             </ul>
         </nav>
     </header>
+
     <div class="container">
         <h1>Gestión de Empleados</h1>
-        <div>
-            <input type="text" id="nombre" placeholder="Nombre del empleado" required>
-            <input type="text" id="puesto" placeholder="Puesto del empleado" required>
-            <button onclick="agregarEmpleado()">Agregar</button>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Puesto</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-empleados">
-                <!-- Aquí se insertarán los empleados -->
-            </tbody>
-        </table>
+        <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Empleado</button>
     </div>
 
-    <script>
-        const API_URL = "http://localhost:3001/empleados";
+    <table id="tabla-empleados">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Puesto</th>
+                <th>Correo</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-        // Cargar empleados desde la API
-        async function cargarEmpleados() {
-            try {
-                const respuesta = await fetch(API_URL);
-                const empleados = await respuesta.json();
-                const tabla = document.getElementById("tabla-empleados");
-                tabla.innerHTML = empleados.map(emp => `
-                    <tr>
-                        <td>${emp.id}</td>
-                        <td>${emp.nombre}</td>
-                        <td>${emp.puesto}</td>
-                        <td>
-                            <button class="edit-btn" onclick="editarEmpleado(${emp.id}, '${emp.nombre}', '${emp.puesto}')">Editar</button>
-                            <button class="delete-btn" onclick="eliminarEmpleado(${emp.id})">Eliminar</button>
-                        </td>
-                    </tr>
-                `).join("");
-            } catch (error) {
-                console.error("Error al cargar los empleados:", error);
-            }
-        }
+    <div id="paginacion"></div>
 
-        // Agregar empleado
-        async function agregarEmpleado() {
-            const nombre = document.getElementById("nombre").value;
-            const puesto = document.getElementById("puesto").value;
-
-            if (!nombre || !puesto) {
-                alert("Por favor ingresa el nombre y el puesto.");
-                return;
-            }
-
-            try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ nombre, puesto })
-                });
-
-                document.getElementById("nombre").value = "";
-                document.getElementById("puesto").value = "";
-                cargarEmpleados();
-            } catch (error) {
-                console.error("Error al agregar el empleado:", error);
-            }
-        }
-
-        // Editar empleado
-        function editarEmpleado(id, nombre, puesto) {
-            const nuevoNombre = prompt("Nuevo nombre:", nombre);
-            const nuevoPuesto = prompt("Nuevo puesto:", puesto);
-
-            if (nuevoNombre && nuevoPuesto) {
-                fetch(`${API_URL}/${id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ nombre: nuevoNombre, puesto: nuevoPuesto })
-                }).then(cargarEmpleados);
-            }
-        }
-
-        // Eliminar empleado
-        async function eliminarEmpleado(id) {
-            if (confirm("¿Seguro que deseas eliminar este empleado?")) {
-                try {
-                    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-                    cargarEmpleados();
-                } catch (error) {
-                    console.error("Error al eliminar el empleado:", error);
-                }
-            }
-        }
-
-        // Cargar empleados al inicio
-        document.addEventListener("DOMContentLoaded", cargarEmpleados);
-
-        function handleLogout() {
-            // Aquí puedes realizar las acciones para cerrar la sesión (ejemplo: borrar cookies o tokens)
-            window.location.href = 'index.html';  // Cambia 'login.html' al nombre de tu página de login
-        }
-    </script>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Ingrese los datos del empleado</h2>
+            <form id="form-empleado">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+                <label for="puesto">Puesto:</label>
+                <input type="text" id="puesto" name="puesto" required>
+                <label for="correo">Correo:</label>
+                <input type="email" id="correo" name="correo" required>
+                <label for="telefono">Teléfono:</label>
+                <input type="text" id="telefono" name="telefono" required>
+                <button type="button" onclick="guardarEmpleado()">Guardar</button>
+                <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+            </form>
+            <div id="mensaje-error" style="color: red; display: none;"></div>
+        </div>
+    </div>
 </body>
 </html>
