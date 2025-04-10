@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Usuarios</title>
+  <link rel="stylesheet" href="/usuario.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/usuario.php";
+    let usuarioEditando = null;
+    let usuarios = [];
+    let paginaActual = 1;
+    const usuariosPorPagina = 5;
+
+    async function cargarUsuarios() {
+      try {
+        const respuesta = await fetch(API_URL);
+        usuarios = await respuesta.json();
+        const usuariosMostrar = usuarios.slice((paginaActual - 1) * usuariosPorPagina, paginaActual * usuariosPorPagina);
+
+        const tabla = document.getElementById("tabla-usuarios").getElementsByTagName('tbody')[0];
+        tabla.innerHTML = usuariosMostrar.map(user => `
+          <tr>
+            <td>${user.id}</td>
+            <td>${user.nombre}</td>
+            <td>${user.apellidos}</td>
+            <td>${user.usuario}</td>
+            <td>${user.correo}</td>
+            <td>${user.telefono}</td>
+            <td>${user.perfil}</td>
+            <td>
+              <button class="edit-btn" onclick="editarUsuario(${user.id}, '${user.nombre}', '${user.apellidos}', '${user.usuario}', '${user.correo}', '${user.telefono}', '${user.perfil}', '${user.contrasena}')">Editar</button>
+              <button class="btn-eliminar" onclick="eliminarUsuario(${user.id})">Eliminar</button>
+            </td>
+          </tr>
+        `).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar los usuarios:", error);
+        mostrarMensaje("Hubo un problema al cargar los usuarios.");
+      }
+    }
+
+    async function eliminarUsuario(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
+        try {
+          const response = await fetch(`${API_URL}?id=${id}`, {
+            method: 'DELETE',
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Usuario eliminado correctamente");
+            cargarUsuarios();
+          } else {
+            mostrarMensaje("Error al eliminar el usuario.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar el usuario:", error);
+          mostrarMensaje("Hubo un problema al eliminar el usuario.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(usuarios.length / usuariosPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(usuarios.length / usuariosPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarUsuarios();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-usuario").reset();
+      usuarioEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarUsuario() {
+      limpiarMensajes();
+
+      const nombre = document.getElementById("nombre").value;
+      const apellidos = document.getElementById("apellidos").value;
+      const usuario = document.getElementById("usuario").value;
+      const correo = document.getElementById("correo").value;
+      const telefono = document.getElementById("telefono").value;
+      const perfil = document.getElementById("perfil").value;
+      const contrasena = document.getElementById("contrasena").value;
+
+      if (!validarCampos(nombre, apellidos, usuario, correo, telefono, perfil, contrasena)) return;
+
+      const usuarioData = { nombre, apellidos, usuario, correo, telefono, perfil, contrasena };
+
+      try {
+        let response;
+        if (usuarioEditando) {
+          usuarioData.id = usuarioEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(usuarioData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(usuarioData)
+          });
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(usuarioEditando ? "Usuario actualizado correctamente" : "Usuario agregado correctamente");
+          cargarUsuarios();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(usuarioEditando ? "Error al actualizar el usuario" : "Error al agregar el usuario");
+        }
+      } catch (error) {
+        console.error("Error al guardar el usuario:", error);
+        mostrarMensaje("Hubo un problema al guardar el usuario.");
+      }
+    }
+
+    function validarCampos(nombre, apellidos, usuario, correo, telefono, perfil, contrasena) {
+      const textoRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
+      const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+      const telefonoRegex = /^[0-9]{10}$/;
+
+      if (!nombre || !textoRegex.test(nombre)) {
+        mostrarMensaje("Nombre inválido.");
+        return false;
+      }
+
+      if (!apellidos || !textoRegex.test(apellidos)) {
+        mostrarMensaje("Apellidos inválidos.");
+        return false;
+      }
+
+      if (!usuario) {
+        mostrarMensaje("Usuario es requerido.");
+        return false;
+      }
+
+      if (!correo || !correoRegex.test(correo)) {
+        mostrarMensaje("Correo inválido.");
+        return false;
+      }
+
+      if (!telefono || !telefonoRegex.test(telefono)) {
+        mostrarMensaje("Teléfono inválido (10 dígitos).");
+        return false;
+      }
+
+      if (!perfil) {
+        mostrarMensaje("Perfil es requerido.");
+        return false;
+      }
+
+      if (!contrasena) {
+        mostrarMensaje("Contraseña es requerida.");
+        return false;
+      }
+
+      return true;
+    }
+
+    function editarUsuario(id, nombre, apellidos, usuario, correo, telefono, perfil, contrasena) {
+      usuarioEditando = { id, nombre, apellidos, usuario, correo, telefono, perfil, contrasena };
+      document.getElementById("nombre").value = nombre;
+      document.getElementById("apellidos").value = apellidos;
+      document.getElementById("usuario").value = usuario;
+      document.getElementById("correo").value = correo;
+      document.getElementById("telefono").value = telefono;
+      document.getElementById("perfil").value = perfil;
+      document.getElementById("contrasena").value = contrasena;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarUsuarios);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+               <!-- Agregar el enlace para cerrar sesión al final del menú -->
+               <li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+              </ul>
+            </nav>
+          
+            <script>
+              function handleLogout() {
+                // Redirige al usuario a la página de inicio de sesión o página principal
+                window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+              }
+            </script>
+            
+    <script>
+      function handleLogout() {
+        window.location.href = 'index.html';
+      }
+    </script>
+  </header>
+
+  <div class="container">
+    <h1>Gestión de Usuarios</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Usuario</button>
+  </div>
+
+  <table id="tabla-usuarios">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Apellidos</th>
+        <th>Usuario</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>Perfil</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Ingrese los datos del usuario</h2>
+      <form id="form-usuario">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <label for="apellidos">Apellidos:</label>
+        <input type="text" id="apellidos" name="apellidos" required>
+        <label for="usuario">Usuario:</label>
+        <input type="text" id="usuario" name="usuario" required>
+        <label for="correo">Correo:</label>
+        <input type="email" id="correo" name="correo" required>
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono" name="telefono" required>
+        <label for="perfil">Perfil:</label>
+        <input type="text" id="perfil" name="perfil" required>
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required>
+        <button type="button" onclick="guardarUsuario()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>

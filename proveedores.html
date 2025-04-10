@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Proveedores</title>
+  <link rel="stylesheet" href="/ventas.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/proveedores.php";
+    let proveedorEditando = null;
+    let proveedores = [];
+    let paginaActual = 1;
+    const proveedoresPorPagina = 5;
+
+    async function cargarProveedores() {
+      try {
+        const respuesta = await fetch(API_URL);
+        proveedores = await respuesta.json();
+        const mostrar = proveedores.slice((paginaActual - 1) * proveedoresPorPagina, paginaActual * proveedoresPorPagina);
+
+        const tabla = document.getElementById("tabla-proveedores").getElementsByTagName('tbody')[0];
+        tabla.innerHTML = mostrar.map(p => `
+          <tr>
+            <td>${p.id}</td>
+            <td>${p.nombre}</td>
+            <td>${p.contacto}</td>
+            <td>${p.telefono}</td>
+            <td>${p.correo}</td>
+            <td>${p.direccion}</td>
+            <td>
+              <button class="edit-btn" onclick="editarProveedor(${p.id}, '${p.nombre}', '${p.contacto}', '${p.telefono}', '${p.correo}', '${p.direccion}')">Editar</button>
+              <button class="btn-eliminar" onclick="eliminarProveedor(${p.id})">Eliminar</button>
+            </td>
+          </tr>
+        `).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar los proveedores:", error);
+        mostrarMensaje("Hubo un problema al cargar los proveedores.");
+      }
+    }
+
+    async function eliminarProveedor(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar este proveedor?")) {
+        try {
+          const response = await fetch(`${API_URL}?id=${id}`, {
+            method: 'DELETE',
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Proveedor eliminado correctamente");
+            cargarProveedores();
+          } else {
+            mostrarMensaje("Error al eliminar el proveedor.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar el proveedor:", error);
+          mostrarMensaje("Hubo un problema al eliminar el proveedor.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(proveedores.length / proveedoresPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(proveedores.length / proveedoresPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarProveedores();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-proveedor").reset();
+      proveedorEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarProveedor() {
+      limpiarMensajes();
+
+      const nombre = document.getElementById("nombre").value;
+      const contacto = document.getElementById("contacto").value;
+      const telefono = document.getElementById("telefono").value;
+      const correo = document.getElementById("correo").value;
+      const direccion = document.getElementById("direccion").value;
+
+      if (!nombre || !contacto || !telefono || !correo || !direccion) {
+        mostrarMensaje("Todos los campos son obligatorios.");
+        return;
+      }
+
+      const proveedorData = { nombre, contacto, telefono, correo, direccion };
+
+      try {
+        let response;
+        if (proveedorEditando) {
+          proveedorData.id = proveedorEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(proveedorData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(proveedorData)
+          });
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          alert(proveedorEditando ? "Proveedor actualizado correctamente" : "Proveedor registrado correctamente");
+          cargarProveedores();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(proveedorEditando ? "Error al actualizar el proveedor" : "Error al registrar el proveedor");
+        }
+      } catch (error) {
+        console.error("Error al guardar el proveedor:", error);
+        mostrarMensaje("Hubo un problema al guardar el proveedor.");
+      }
+    }
+
+    function editarProveedor(id, nombre, contacto, telefono, correo, direccion) {
+      proveedorEditando = { id, nombre, contacto, telefono, correo, direccion };
+      document.getElementById("nombre").value = nombre;
+      document.getElementById("contacto").value = contacto;
+      document.getElementById("telefono").value = telefono;
+      document.getElementById("correo").value = correo;
+      document.getElementById("direccion").value = direccion;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarProveedores);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+            <!-- Agregar el enlace para cerrar sesión al final del menú -->
+<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+</ul>
+</nav>
+
+<script>
+function handleLogout() {
+// Redirige al usuario a la página de inicio de sesión o página principal
+window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+}
+</script>
+      </ul>
+      
+    </nav>
+</header>
+
+
+  <div class="container">
+    <h1>Gestión de Proveedores</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Proveedor</button>
+  </div>
+
+  <table id="tabla-proveedores">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Contacto</th>
+        <th>Teléfono</th>
+        <th>Correo</th>
+        <th>Dirección</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Registrar o editar proveedor</h2>
+      <form id="form-proveedor">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <label for="contacto">Contacto:</label>
+        <input type="text" id="contacto" name="contacto" required>
+        <label for="telefono">Teléfono:</label>
+        <input type="tel" id="telefono" name="telefono" required>
+        <label for="correo">Correo:</label>
+        <input type="email" id="correo" name="correo" required>
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion" name="direccion" required>
+        <button type="button" onclick="guardarProveedor()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>

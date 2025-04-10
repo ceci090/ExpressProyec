@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Máquinas</title>
+  <link rel="stylesheet" href="/empleados.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/maquina.php";
+    let maquinaEditando = null;
+    let maquinas = [];
+    let paginaActual = 1;
+    const maquinasPorPagina = 5;
+
+    async function cargarMaquinas() {
+      try {
+        const respuesta = await fetch(API_URL);
+        maquinas = await respuesta.json();
+        const maquinasMostrar = maquinas.slice((paginaActual - 1) * maquinasPorPagina, paginaActual * maquinasPorPagina);
+
+        const tabla = document.getElementById("tabla-maquinas").getElementsByTagName("tbody")[0];
+        tabla.innerHTML = maquinasMostrar.map(m => `
+          <tr>
+            <td>${m.id}</td>
+            <td>${m.maquina}</td>
+            <td>${m.estado}</td>
+            <td>
+              <button class="edit-btn" onclick="editarMaquina(${m.id}, '${m.maquina}', '${m.estado}')">Editar</button>
+              <button class="btn-eliminar" onclick="eliminarMaquina(${m.id})">Eliminar</button>
+            </td>
+          </tr>
+        `).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar máquinas:", error);
+        mostrarMensaje("Hubo un problema al cargar las máquinas.");
+      }
+    }
+
+    async function eliminarMaquina(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar esta máquina?")) {
+        try {
+          const response = await fetch(`${API_URL}?id=${id}`, { method: "DELETE" });
+          const data = await response.json();
+          if (data.success) {
+            alert("Máquina eliminada correctamente");
+            cargarMaquinas();
+          } else {
+            mostrarMensaje("Error al eliminar la máquina.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar la máquina:", error);
+          mostrarMensaje("Hubo un problema al eliminar la máquina.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(maquinas.length / maquinasPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(maquinas.length / maquinasPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarMaquinas();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-maquina").reset();
+      maquinaEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarMaquina() {
+      limpiarMensajes();
+      const maquina = document.getElementById("maquina").value;
+      const estado = document.getElementById("estado").value;
+
+      if (!maquina || !estado) {
+        mostrarMensaje("Por favor completa todos los campos.");
+        return;
+      }
+
+      const maquinaData = { maquina, estado };
+
+      try {
+        let response;
+        if (maquinaEditando) {
+          maquinaData.id = maquinaEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(maquinaData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(maquinaData)
+          });
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          alert(maquinaEditando ? "Máquina actualizada correctamente" : "Máquina agregada correctamente");
+          cargarMaquinas();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(maquinaEditando ? "Error al actualizar la máquina" : "Error al agregar la máquina");
+        }
+      } catch (error) {
+        console.error("Error al guardar la máquina:", error);
+        mostrarMensaje("Hubo un problema al guardar la máquina.");
+      }
+    }
+
+    function editarMaquina(id, maquina, estado) {
+      maquinaEditando = { id, maquina, estado };
+      document.getElementById("maquina").value = maquina;
+      document.getElementById("estado").value = estado;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarMaquinas);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+            <!-- Agregar el enlace para cerrar sesión al final del menú -->
+<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+</ul>
+</nav>
+
+<script>
+function handleLogout() {
+// Redirige al usuario a la página de inicio de sesión o página principal
+window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+}
+</script>
+      </ul>
+      
+    </nav>
+</header>
+
+
+  <div class="container">
+    <h1>Gestión de Máquinas</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Máquina</button>
+  </div>
+
+  <table id="tabla-maquinas">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Máquina</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Ingrese los datos de la máquina</h2>
+      <form id="form-maquina">
+        <label for="maquina">Máquina:</label>
+        <input type="text" id="maquina" name="maquina" required />
+        <label for="estado">Estado:</label>
+        <input type="text" id="estado" name="estado" required />
+        <button type="button" onclick="guardarMaquina()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>

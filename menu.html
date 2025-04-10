@@ -1,46 +1,295 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tortillería Tradicional</title>
-    <link rel="stylesheet" href="/menu.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tortillería Tradicional</title>
+  <link rel="stylesheet" href="/menu.css" />
+  <style>
+    nav ul ul {
+      display: none;
+    }
+    nav ul li:hover > ul {
+      display: block;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Menú de navegación -->
-    <nav>
+  <nav>
+    <ul>
+      <li><a href="menu.html">Inicio</a></li>
+      <li><a href="#" data-modulo="Administracion">Administración</a>
         <ul>
-            <li><a href="menu.html">Inicio</a></li>
-            <li><a href="nosotros.html">Nosotros</a></li>
-            <li><a href="productos.html">Productos</a></li>
-            <li><a href="Tienda en línea.html">Tienda en línea</a></li>
-            <li><a href="empleados.html">Empleados</a></li>
-            <li><a href="javascript:void(0);" onclick="handleLogout()">Cerrar sesión</a></li>
+          <li><a href="#" data-modulo="GestionPersonal">Gestión Personal</a>
+            <ul>
+              <li><a href="empleados.html" data-modulo="Empleados">Empleados</a></li>
+              <li><a href="usuarios.html" data-modulo="Usuarios">Usuarios</a></li>
+            </ul>
+          </li>
+          <li><a href="#" data-modulo="GestionFinanciera">Gestión Financiera</a>
+            <ul>
+              <li><a href="ventas.html" data-modulo="Ventas">Ventas</a></li>
+              <li><a href="gastos.html" data-modulo="Gastos">Gastos</a></li>
+            </ul>
+          </li>
         </ul>
-    </nav>
+      </li>
+      <li><a href="#" data-modulo="Operaciones">Operaciones</a>
+        <ul>
+          <li><a href="#" data-modulo="GestionProduccion">Gestión de Producción</a>
+            <ul>
+              <li><a href="produccion.html" data-modulo="Produccion">Producción</a></li>
+              <li><a href="maquina.html" data-modulo="Maquina">Máquina</a></li>
+            </ul>
+          </li>
+          <li><a href="#" data-modulo="GestionAbastecimientos">Gestión de Abastecimientos</a>
+            <ul>
+              <li><a href="proveedores.html" data-modulo="Proveedores">Proveedores</a></li>
+              <li><a href="inventario.html" data-modulo="Inventario">Inventario</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#" data-modulo="Comercializacion">Comercialización</a>
+        <ul>
+          <li><a href="#" data-modulo="RelacionesClientes">Relaciones con Clientes</a>
+            <ul>
+              <li><a href="clientes.html" data-modulo="Clientes">Clientes</a></li>
+            </ul>
+          </li>
+          <li><a href="#" data-modulo="LogisticaPedidos">Logística de Pedidos</a>
+            <ul>
+              <li><a href="pedidos.html" data-modulo="Pedidos">Pedidos</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+  
+  <script>
+    function handleLogout() {
+      window.location.href = 'index.html';
+    }
+  </script>
 
-    <!-- Breadcrumbs -->
-    <div class="breadcrumbs">
-        <ol>
-            <li><a href="menu.html">Inicio</a></li>
-            <li><a href="productos.html">Productos</a></li>
-            <li><a href="#">Tortillas de Maíz</a></li>
-        </ol>
-    </div>
+  <div class="container">
+    <h1>Bienvenido <span id="username"></span>!</h1>
+  </div>
 
-    <!-- Contenido principal -->
-    <div class="container">
-        <h1>Bienvenido a la Tortillería Tradicional</h1>
-        <p>Ofrecemos las mejores tortillas hechas con maíz 100% natural. Frescas, deliciosas y con el auténtico sabor de la tradición mexicana.</p>
-    </div>
-    <script>
-        function handleLogout() {
-            // Aquí puedes realizar las acciones para cerrar la sesión (ejemplo: borrar cookies o tokens)
-            
-            // Redirigir al login
-            window.location.href = 'index.html';  // Cambia 'login.html' al nombre de tu página de login
+  <div class="container">
+    <h2>Gestión de Módulos</h2>
+    <label for="perfil">Selecciona un perfil:</label>
+    <select id="perfil">
+      <option value="">-- Selecciona --</option>
+    </select>
+
+    <br><br>
+
+    <table id="tablaModulos">
+      <thead>
+        <tr>
+          <th>Módulo</th>
+          <th>Agregar</th>
+          <th>Editar</th>
+          <th>Eliminar</th>
+          <th>Consultar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Filas se llenarán dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="guardarPermisos">Guardar Permisos</button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async function() {
+      // Mostrar nombre de usuario si está disponible
+      const usuario = localStorage.getItem('usuario');
+      if (usuario) {
+        document.getElementById("username").textContent = usuario;
+      }
+
+      // Cargar perfiles desde la base de datos
+      await cargarPerfiles();
+      
+      // Cargar módulos desde la base de datos
+      await cargarModulos();
+      
+      // Evento para cuando se selecciona un perfil
+      document.getElementById("perfil").addEventListener("change", function() {
+        const perfilId = this.value;
+        if (perfilId) {
+          cargarPermisosPerfil(perfilId);
+        } else {
+          limpiarCheckboxes();
         }
-    </script>
+      });
+      
+      // Evento para guardar permisos
+      document.getElementById("guardarPermisos").addEventListener("click", guardarPermisos);
+    });
+
+    function limpiarCheckboxes() {
+      document.querySelectorAll("#tablaModulos input[type='checkbox']").forEach(checkbox => {
+        checkbox.checked = false;
+      });
+    }
+
+    async function cargarPerfiles() {
+      try {
+        const response = await fetch('https://palegreen-starling-110684.hostingersite.com/perfil.php');
+        const data = await response.json();
+        
+        const select = document.getElementById("perfil");
+        select.innerHTML = '<option value="">-- Selecciona --</option>';
+        
+        if (data.success && data.perfiles) {
+          data.perfiles.forEach(perfil => {
+            const option = document.createElement("option");
+            option.value = perfil.idPerfil;
+            option.textContent = perfil.nombre;
+            select.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error("Error al cargar perfiles:", error);
+        alert("Error al cargar los perfiles");
+      }
+    }
+
+    async function cargarModulos() {
+      try {
+        const response = await fetch('https://palegreen-starling-110684.hostingersite.com/modulos.php');
+        const data = await response.json();
+        
+        const tbody = document.querySelector("#tablaModulos tbody");
+        tbody.innerHTML = '';
+        
+        if (data.success && data.modulos) {
+          data.modulos.forEach(modulo => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${modulo.nombre}</td>
+              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="agregar"></td>
+              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="editar"></td>
+              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="eliminar"></td>
+              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="consultar"></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (error) {
+        console.error("Error al cargar módulos:", error);
+        alert("Error al cargar los módulos");
+      }
+    }
+
+    function cargarPermisosPerfil(perfilId) {
+      // Limpiar todos los checkboxes primero
+      limpiarCheckboxes();
+      
+      // Obtener permisos guardados en localStorage
+      const permisosGuardados = JSON.parse(localStorage.getItem('permisos')) || {};
+      const permisosPerfil = permisosGuardados[perfilId] || {};
+      
+      // Marcar los checkboxes según los permisos guardados
+      Object.keys(permisosPerfil).forEach(moduloId => {
+        const permisos = permisosPerfil[moduloId];
+        
+        ['agregar', 'editar', 'eliminar', 'consultar'].forEach(permiso => {
+          const checkbox = document.querySelector(
+            `input[data-modulo-id="${moduloId}"][data-permiso="${permiso}"]`
+          );
+          if (checkbox) {
+            checkbox.checked = permisos[permiso] === 1;
+          }
+        });
+      });
+    }
+
+    function guardarPermisos() {
+      const perfilId = document.getElementById("perfil").value;
+      if (!perfilId) {
+        alert("Por favor, selecciona un perfil primero");
+        return;
+      }
+      
+      const permisos = {};
+      
+      // Recoger todos los checkboxes de la tabla
+      document.querySelectorAll("#tablaModulos input[type='checkbox']").forEach(checkbox => {
+        const moduloId = checkbox.getAttribute("data-modulo-id");
+        const permiso = checkbox.getAttribute("data-permiso");
+        
+        if (!permisos[moduloId]) {
+          permisos[moduloId] = {
+            agregar: 0,
+            editar: 0,
+            eliminar: 0,
+            consultar: 0
+          };
+        }
+        
+        permisos[moduloId][permiso] = checkbox.checked ? 1 : 0;
+      });
+      
+      // Guardar en localStorage manteniendo otros perfiles
+      const todosPermisos = JSON.parse(localStorage.getItem('permisos')) || {};
+      todosPermisos[perfilId] = permisos;
+      localStorage.setItem('permisos', JSON.stringify(todosPermisos));
+      
+      alert(`Permisos guardados para el perfil seleccionado`);
+      
+      // Actualizar navbar según los nuevos permisos
+      actualizarNavbar(permisos);
+    }
+
+    function actualizarNavbar(permisos) {
+      // Primero mostramos todos los elementos del menú
+      document.querySelectorAll("nav li").forEach(li => {
+        li.style.display = 'block';
+      });
+
+      // Luego ocultamos los que no tienen permisos
+      document.querySelectorAll("nav a[data-modulo]").forEach(link => {
+        const modulo = link.getAttribute("data-modulo");
+        const liElement = link.closest('li');
+        
+        // Verificar si el módulo tiene al menos un permiso
+        let tienePermiso = false;
+        Object.values(permisos).forEach(moduloPermisos => {
+          if (moduloPermisos.agregar === 1 || moduloPermisos.editar === 1 || 
+              moduloPermisos.eliminar === 1 || moduloPermisos.consultar === 1) {
+            tienePermiso = true;
+          }
+        });
+        
+        if (!tienePermiso) {
+          liElement.style.display = 'none';
+        }
+      });
+    }
+  </script>
+
 </body>
 </html>

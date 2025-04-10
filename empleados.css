@@ -1,675 +1,466 @@
-
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f8f1e5;
-}
-
-/* Menú de navegación */
+/* Estilos básicos para el menú */
 nav {
-background: rgba(139, 90, 43, 0.9); /* Color con transparencia */
-backdrop-filter: blur(10px); /* Efecto de desenfoque */
-padding: 15px;
-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-position: sticky;
-top: 0;
-width: 100%;
-z-index: 1000;
-}
-
-nav ul {
-list-style: none;
-padding: 0;
-margin: 0;
-display: flex;
-flex-wrap: wrap;
-justify-content: center;
-}
-
-nav ul li {
-margin: 0 15px;
-position: relative;
-}
-
-nav ul li a {
-color: white;
-text-decoration: none;
-font-weight: bold;
-padding: 12px 20px;
-display: block;
-font-size: 16px;
-border-radius: 30px;
-transition: all 0.3s ease-in-out;
-background: linear-gradient(to right, #a67640, #8b5a2b);
-box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-nav ul li a:hover {
-background: linear-gradient(to right, #8b5a2b, #6d4c41);
-transform: translateY(-3px);
-box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
-}
-
-/* Efecto de subrayado animado */
-nav ul li a::after {
-content: "";
-display: block;
-height: 3px;
-width: 0;
-background: white;
-transition: width 0.3s ease-in-out;
-margin: auto;
-border-radius: 10px;
-}
-
-nav ul li a:hover::after {
-width: 100%;
-}
-
-/* Responsividad */
-@media (max-width: 768px) {
-nav ul {
-flex-direction: column;
-text-align: center;
-}
-
-nav ul li {
-margin: 10px 0;
-}
-}
-
-
-/* Breadcrumbs Estilizados */
-.breadcrumbs {
-padding: 12px;
-background: rgba(255, 255, 255, 0.2);
-margin: 10px auto;
-width: fit-content;
-border-radius: 10px;
-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
-backdrop-filter: blur(8px);
-border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.breadcrumbs ol {
-list-style: none;
-display: flex;
-align-items: center;
-padding: 0;
-margin: 0;
-}
-
-.breadcrumbs ol li {
-display: flex;
-align-items: center;
-}
-
-.breadcrumbs ol li a {
-text-decoration: none;
-color: #6d4c41;
-font-weight: bold;
-background: linear-gradient(to right, #f4e1c6, #e4c59e);
-padding: 8px 15px;
-border-radius: 20px;
-transition: all 0.3s ease-in-out;
-border: 2px solid #a67640;
-display: inline-block;
-font-size: 14px;
-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.breadcrumbs ol li a:hover {
-background: linear-gradient(to right, #a67640, #8b5a2b);
-color: white;
-transform: translateY(-2px);
-}
-
-.breadcrumbs ol li::after {
-content: "❯";
-font-size: 14px;
-color: #8b5a2b;
-margin: 0 12px;
-}
-
-.breadcrumbs ol li:last-child::after {
-content: "";
-}
-
-.breadcrumbs ol li:last-child a {
-background: #8b5a2b;
-color: white;
-cursor: default;
-pointer-events: none;
-border: none;
-font-weight: bold;
-}
-
-
-/* Título con diseño más elegante */
-.container h1 {
-color: #8b5a2b;
-font-size: 36px;
-font-weight: bold;
-text-transform: uppercase;
-letter-spacing: 2px;
-background: linear-gradient(to right, #8b5a2b, #d6a571);
--webkit-background-clip: text;
--webkit-text-fill-color: transparent;
-text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Párrafo con mejor diseño */
-.container p {
-max-width: 700px;
-margin: 15px auto;
-color: #4a4a4a;
-font-size: 18px;
-line-height: 1.6;
-font-weight: 400;
-padding: 10px;
-background: rgba(255, 255, 255, 0.5);
-border-radius: 10px;
-box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Añadir una animación suave */
-@keyframes fadeIn {
-from {
-opacity: 0;
-transform: translateY(20px);
-}
-to {
-opacity: 1;
-transform: translateY(0);
-}
-}
-
-/* Estilos generales */
-body {
-font-family: Arial, sans-serif;
-background: linear-gradient(to right, #ffefba, #ffffff);
-margin: 0;
-padding: 0;
-color: #333;
-}
-
-/* Párrafo con mejor diseño */
-.container p {
-max-width: 700px;
-margin: 15px auto;
-color: #333;
-font-size: 18px;
-line-height: 1.8;
-font-weight: 400;
-padding: 15px;
-background: rgba(255, 255, 255, 0.8);
-border-left: 5px solid #ff9800;
-border-radius: 8px;
-box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
-transition: transform 0.3s ease-in-out;
-}
-
-.container p:hover {
-transform: scale(1.02);
-}
-
-/* Animación de entrada */
-@keyframes fadeIn {
-from {
-opacity: 0;
-transform: translateY(20px);
-}
-to {
-opacity: 1;
-transform: translateY(0);
-}
-}
-
-.container {
-animation: fadeIn 0.8s ease-in-out;
-padding: 20px;
-}
-
-/* Menú de navegación */
-nav ul {
-list-style: none;
-padding: 0;
-display: flex;
-justify-content: center;
-background: #ff9800;
-padding: 10px 0;
-margin: 0;
-border-radius: 0 0 10px 10px;
-}
-
-nav ul li {
-margin: 0 15px;
-}
-
-nav ul li a {
-text-decoration: none;
-color: white;
-font-size: 18px;
-font-weight: bold;
-transition: color 0.3s;
-}
-
-nav ul li a:hover {
-color: #333;
-}
-
-/* Breadcrumbs */
-.breadcrumbs ol {
-list-style: none;
-display: flex;
-justify-content: center;
-padding: 10px;
-background: #f5f5f5;
-border-radius: 5px;
-font-size: 14px;
-}
-
-.breadcrumbs ol li {
-margin: 0 5px;
-}
-
-.breadcrumbs ol li a {
-text-decoration: none;
-color: #ff9800;
-}
-
-.breadcrumbs ol li a:hover {
-text-decoration: underline;
-}
-
-
-
-
-/* Responsividad */
-@media (max-width: 768px) {
-    nav ul {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    nav ul li {
-        margin: 10px 0;
-    }
-}
-
-/* Breadcrumbs */
-.breadcrumbs {
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 10px auto;
-    width: fit-content;
-    border-radius: 10px;
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.breadcrumbs ol {
-    list-style: none;
+    background-color: #2c2c2c; /* Un tono más oscuro y elegante */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
     display: flex;
-    align-items: center;
+    justify-content: center; /* Centra el contenido horizontalmente */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra sutil para darle más profundidad */
+    position: relative;
+  }
+  
+  /* Estilo del contenedor de la lista */
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: nowrap; /* Evita que los ítems se vayan a la siguiente línea */
+  }
+  
+  /* Estilos de los elementos principales */
+  nav > ul > li {
+    position: relative;
+    margin: 0 10px; /* Añadir espacio entre los ítems */
+  }
+  
+  /* Estilo de los enlaces */
+  nav a {
+    display: block;
+    padding: 14px 24px;
+    color: #fff;
+    text-decoration: none;
+    background-color: #2c2c2c;
+    border-radius: 5px;
+    font-size: 16px;
+    text-align: center;
+    transition: background-color 0.4s ease, transform 0.4s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Efecto hover para los enlaces */
+  nav > ul > li > a:hover {
+    background-color: #444; /* Un color intermedio entre el fondo y el hover */
+    transform: translateY(-3px); /* Eleva el ítem ligeramente */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Añadir sombra suave al hacer hover */
+  }
+  
+  /* Submenús */
+  nav ul ul {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    min-width: 220px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra sutil para dar profundidad */
+    opacity: 0; /* Submenú oculto */
+    transition: opacity 0.3s ease; /* Transición suave para mostrar el submenú */
+    z-index: 1000;
+  }
+  
+  /* Muestra el submenú cuando el elemento padre está en hover */
+  nav ul li:hover > ul {
+    display: block;
+    opacity: 1;
+  }
+  
+  /* Submenú de segundo nivel */
+  nav ul ul li {
+    display: block;
+    position: relative;
+    margin: 0;
+  }
+  
+  /* Submenú de tercer nivel */
+  nav ul ul ul {
+    left: 100%;
+    top: 0;
+  }
+  
+  /* Estilos para los Breadcrumbs */
+  .breadcrumbs {
+    background-color: #f8f8f8;
+    padding: 12px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave para dar profundidad */
+  }
+  
+  /* Estilo de los elementos dentro de Breadcrumbs */
+  .breadcrumbs ol {
+    list-style: none;
     padding: 0;
     margin: 0;
-}
-
-.breadcrumbs ol li {
     display: flex;
     align-items: center;
-}
-
-.breadcrumbs ol li a {
+  }
+  
+  .breadcrumbs ol li {
+    margin-right: 12px;
+  }
+  
+  .breadcrumbs ol li a {
+    color: #007bff;
     text-decoration: none;
-    color: #6d4c41;
-    font-weight: bold;
-    background: linear-gradient(to right, #f4e1c6, #e4c59e);
-    padding: 8px 15px;
-    border-radius: 20px;
-    transition: all 0.3s ease-in-out;
-    border: 2px solid #a67640;
-    display: inline-block;
-    font-size: 14px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.breadcrumbs ol li a:hover {
-    background: linear-gradient(to right, #a67640, #8b5a2b);
-    color: white;
-    transform: translateY(-2px);
-}
-
-.breadcrumbs ol li::after {
-    content: "❯";
-    font-size: 14px;
-    color: #8b5a2b;
-    margin: 0 12px;
-}
-
-.breadcrumbs ol li:last-child::after {
-    content: "";
-}
-
-.breadcrumbs ol li:last-child a {
-    background: #8b5a2b;
-    color: white;
-    cursor: default;
-    pointer-events: none;
-    border: none;
-}
-
-
-/* Título con diseño más elegante */
-.container h1 {
-    color: #8b5a2b;
-    font-size: 36px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    background: linear-gradient(to right, #8b5a2b, #d6a571);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Párrafo con mejor diseño */
-.container p {
-    max-width: 700px;
-    margin: 15px auto;
-    color: #333;
-    font-size: 18px;
-    line-height: 1.8;
-    font-weight: 400;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.8);
-    border-left: 5px solid #ff9800;
-    border-radius: 8px;
-    box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-}
-
-.container p:hover {
-    transform: scale(1.02);
-}
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Botones generales */
-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
     font-weight: 500;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.3s;
-    margin-right: 8px;
-    background-color: #ff9800;
-}
-
-button.agregar-btn {
-    background-color: #ff9800;
-}
-
-button.agregar-btn:hover {
-    background-color: #fb8c00;
-    box-shadow: 0px 6px 12px rgba(255, 152, 0, 0.3);
-    transform: translateY(-3px);
-}
-
-button.edit-btn {
-    background-color: #6D4C41;
-}
-
-button.edit-btn:hover {
-    background-color: #5D4037;
-    box-shadow: 0px 6px 12px rgba(109, 76, 65, 0.3);
-    transform: translateY(-3px);
-}
-
-button.delete-btn {
-    background-color: #D32F2F;
-}
-
-button.delete-btn:hover {
-    background-color: #B71C1C;
-    box-shadow: 0px 6px 12px rgba(211, 47, 47, 0.3);
-    transform: translateY(-3px);
-}
-
-/* Estilos de tabla */
+    transition: color 0.3s ease;
+  }
+  
+  .breadcrumbs ol li a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+  }
+  
+  .breadcrumbs ol li::after {
+    content: ">";
+    margin-left: 12px;
+    color: #666;
+  }
+  
+  .breadcrumbs ol li:last-child::after {
+    content: "";
+  }
+  
+  /* Estilos para la navegación responsive */
+  @media (max-width: 768px) {
+    nav ul {
+      display: block;
+    }
+  
+    nav > ul > li {
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin: 10px 0; /* Añadir separación en móvil */
+    }
+  
+    nav ul ul {
+      position: static;
+      display: none;
+      background-color: #333;
+    }
+  
+    nav ul li:hover > ul {
+      display: block;
+    }
+  
+    nav a {
+      padding: 12px 20px;
+      font-size: 16px;
+    }
+  
+    /* Menú hamburguesa */
+    .menu-toggle {
+      display: block;
+      background-color: #2c2c2c;
+      color: #fff;
+      padding: 12px 20px;
+      cursor: pointer;
+      text-align: center;
+      border: none;
+      font-size: 20px;
+      border-radius: 5px;
+    }
+  
+    .menu-toggle.active + ul {
+      display: block;
+    }
+  
+    /* Iconos y transición para el menú hamburguesa */
+    .menu-toggle span {
+      display: block;
+      width: 28px;
+      height: 3px;
+      background-color: #fff;
+      margin: 6px auto;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+  
+    .menu-toggle.active span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+  
+    .menu-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+  
+    .menu-toggle.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+  }
+  /* Estilo general para la tabla de empleados */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 16px;
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    margin: 20px 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-th, td {
-    padding: 10px 14px;
-    text-align: center;
-    font-size: 14px;
-    border: 1px solid #ddd;
-    color: #4a4a4a;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-th {
-    background-color: #8d6e63;
-    color: white;
-    font-weight: bold;
-}
-
-tr:nth-child(even) {
-    background-color: #f1f1f1;
-}
-
-tr:nth-child(odd) {
-    background-color: #fff;
-}
-
-tr:hover {
-    background-color: #ffebee;
-    transform: scale(1.03);
-    transition: all 0.3s ease;
-}
-
-td:first-child {
-    font-weight: bold;
-    color: #8b5a2b;
-}
-
-table caption {
-    font-size: 20px;
-    color: #6d4c41;
-    font-weight: bold;
-    padding: 10px 0;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-/* Contenedores de entrada */
-.input-container {
-    margin-bottom: 16px;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Estilos de input (entrada de texto) */
-input {
-    width: 60%;
-    padding: 6px 10px;
-    border: 1px solid #D7CCC8;
-    border-radius: 6px;
-    font-size: 14px;
-    background-color: #FFFFFF;
-    transition: all 0.3s ease;
-    margin: 0 auto;
-}
-
-input:focus {
-    border-color: #ff9800;
-    box-shadow: 0px 0px 8px rgba(255, 152, 0, 0.2);
-}
-
-/* Contenedor de Nombre y Puesto de Empleado */
-.nombre-empleado, .puesto-empleado {
-    font-size: 14px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 60%;
-    margin: 0 auto;
-}
-
-.nombre-empleado {
-    font-weight: 700;
-    color: #4E342E;
-    background-color: #FFEBEE;
-    text-transform: capitalize;
-    border-left: 5px solid #FF7043;
+/* Estilo para los encabezados de la tabla */
+table th {
+    background-color: #444;
+    color: #fff;
+    padding: 12px;
+    text-align: left;
     font-size: 16px;
-    letter-spacing: 0.8px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
 }
 
-.puesto-empleado {
-    font-style: italic;
-    color: #6D4C41;
-    background-color: #F1F8E9;
-    text-transform: capitalize;
-    font-size: 12px;
-    border-left: 5px solid #8D6E63;
-    letter-spacing: 0.6px;
+/* Estilo para las filas de la tabla */
+table td {
+    background-color: #f4f4f4;
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
 }
 
-.nombre-empleado:hover, .puesto-empleado:hover {
-    transform: translateY(-5px);
-    box-shadow: 2px 4px 15px rgba(0, 0, 0, 0.15);
-    background-color: #FFF3E0;
+/* Estilo para los botones dentro de la tabla */
+table .edit-btn,
+table .btn-eliminar {
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-.nombre-empleado:focus, .puesto-empleado:focus {
-    outline: none;
-    border-color: #FF7043;
-    box-shadow: 0 0 5px rgba(255, 112, 67, 0.5);
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding-top: 60px;
-}
-
-.modal-content {
-    background-color: white;
-    margin: 5% auto;
-    padding: 16px;
-    border: 1px solid #888;
-    width: 50%;
-    border-radius: 6px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.modal-content h2 {
-    margin-bottom: 10px;
-    font-size: 18px;
-    color: #333;
-}
-
-.modal-content label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
-    color: #555;
-}
-
-.modal-content input {
-    width: 100%;
-    padding: 6px;
-    margin-bottom: 8px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 12px;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.modal-content input:focus {
-    border-color: #ff9800;
-    box-shadow: 0 0 6px rgba(255, 152, 0, 0.2);
-}
-
-.modal-content button {
+/* Botón editar */
+table .edit-btn {
     background-color: #4CAF50;
     color: white;
-    padding: 6px 12px;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    border-radius: 6px;
-    transition: background-color 0.3s, transform 0.3s;
 }
 
-.modal-content button:hover {
+table .edit-btn:hover {
     background-color: #45a049;
     transform: scale(1.05);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    .modal-content {
-        width: 90%;
-    }
+/* Botón eliminar */
+table .btn-eliminar {
+    background-color: #f44336;
+    color: white;
+}
 
-    input, .btn-agregar {
-        width: 90%;
-        font-size: 12px;
-    }
+table .btn-eliminar:hover {
+    background-color: #e53935;
+    transform: scale(1.05);
+}
 
-    table, th, td {
-        font-size: 12px;
-    }
+/* Estilo de la paginación */
+#paginacion {
+    text-align: center;
+    margin-top: 20px;
+}
 
-    nav ul {
-        text-align: left;
-    }
+#paginacion button {
+    background-color: #2c2c2c;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 
-    nav ul li {
-        display: block;
-        margin-bottom: 8px;
-    }
+#paginacion button:hover {
+    background-color: #444;
+}
 
-    nav ul li a {
-        padding: 10px;
-        width: 100%;
-    }
+/* Estilos para el modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Fondo oscurecido más suave */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Contenido del modal */
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    width: 450px;
+    border-radius: 10px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada */
+    transform: translateY(-50px);
+    transition: transform 0.3s ease-out;
+}
+
+.modal-content.show {
+    transform: translateY(0); /* Animación de entrada */
+}
+
+/* Título del modal */
+.modal h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #333;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Etiquetas del formulario */
+.modal label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+    text-align: left;
+}
+
+/* Campos de entrada */
+.modal input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 16px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    background-color: #f7f7f7;
+    color: #333;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Foco en los campos de entrada */
+.modal input:focus {
+    border-color: #007bff;
+    background-color: #fff;
+}
+
+/* Estilo de los botones */
+.modal button {
+    width: 48%;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    border: none;
+    font-weight: 500;
+}
+
+/* Botón para cerrar el modal */
+.modal button[type="button"] {
+    background-color: #f44336;
+    color: white;
+}
+
+.modal button[type="button"]:hover {
+    background-color: #e53935;
+    transform: scale(1.05);
+}
+
+/* Botón para enviar el formulario */
+.modal button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.modal button[type="submit"]:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+/* Estilo para el mensaje de error */
+#mensaje-error {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* Animación al mostrar el modal */
+.modal.show {
+    display: flex;
+}
+
+.modal .close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    color: #aaa;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.modal .close-btn:hover {
+    color: #333;
+}
+
+/* Estilo para el contenedor general */
+.container {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.container h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* Estilo para el botón de agregar empleado */
+.btn-agregar {
+    padding: 12px 24px;
+    background-color: #2c2c2c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-agregar:hover {
+    background-color: #444;
+    transform: scale(1.05);
+}
+
+
+#mensaje-error {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* Estilos para el contenedor general */
+.container {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.container h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* Estilo para el botón de agregar empleado */
+.btn-agregar {
+    padding: 10px 20px;
+    background-color: #2c2c2c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-agregar:hover {
+    background-color: #444;
 }

@@ -1,200 +1,125 @@
-/* Estilos generales */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
-}
-
-/* Fondo animado con gradiente y movimiento sutil */
+/* Estilos básicos del login */
 body {
-  background: linear-gradient(to right, #8b5a2b, #d6a571, #ffefba); /* Colores cálidos y suaves */
-  background-size: 200% 200%;
-  animation: gradientAnimation 6s ease infinite;
-  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4; /* Fondo claro */
   display: flex;
-  align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Animación de fondo para un gradiente en movimiento */
-@keyframes gradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Filtro de desenfoque para todo el body */
-body::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: -1;
-}
-
-/* Caja de login con diseño suave y borde resaltado en naranja */
-.login-box {
-  background: rgba(255, 255, 255, 0.85); /* Fondo blanco con transparencia */
-  backdrop-filter: blur(12px); /* Desenfoque suave */
-  padding: 50px 40px;
-  border-radius: 20px;
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1), 0 0 20px #ff9800; /* Efecto glow naranja */
-  text-align: center;
-  width: 400px;
-  border: 2px solid #ff9800; /* Borde naranja brillante */
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  transition: all 0.3s ease;
+  height: 100vh;
+  margin: 0;
+  color: #333; /* Color oscuro para el texto */
 }
 
-/* Efecto glow al pasar el cursor */
-.login-box:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 25px #ff9800; /* Resalta el glow naranja */
-}
-
-/* Título sin degradado */
-.login-box h1 {
-  font-size: 36px;
-  margin-bottom: 25px;
-  font-weight: 700;
-  color: #8b5a2b; /* Color marrón cálido */
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-/* Efecto hover sobre el título */
-.login-box h1:hover {
-  color: #d6a571; /* Cambia a un dorado suave */
-  transform: translateY(-4px);
-  text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Estilo para la imagen dentro del formulario */
-.login-box img {
-  width: 60%;
-  height: auto;
-  border-radius: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Estilos de los inputs */
-.input-group {
-  margin-bottom: 25px;
-  text-align: left;
+/* Contenedor del formulario */
+.login-box {
+  background-color: #fff; /* Fondo blanco para el formulario */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1); /* Sombra suave para dar profundidad */
   width: 100%;
+  max-width: 400px; /* Máxima anchura para el formulario */
+  text-align: center;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+/* Efecto de sombra al hacer hover */
+.login-box:hover {
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Título del formulario */
+.login-box h1 {
+  color: #333;
+  margin-bottom: 25px;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Imagen */
+.login-box img {
+  width: 100px;
+  margin-bottom: 25px;
+  border-radius: 50%;
+}
+
+/* Estilos de los campos de entrada */
+.input-group {
+  margin-bottom: 20px;
 }
 
 .input-group label {
-  font-weight: bold;
-  color: #8b5a2b; /* Color marrón cálido */
+  color: #555;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
 }
 
 .input-group input {
   width: 100%;
-  padding: 15px;
-  border: 2px solid #8b5a2b; /* Borde marrón cálido */
-  border-radius: 12px;
-  outline: none;
-  background: rgba(255, 255, 255, 0.8); /* Fondo blanco con transparencia */
-  transition: all 0.3s ease;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  color: #333;
   font-size: 16px;
-  color: #8b5a2b; /* Texto marrón cálido */
+  outline: none;
+  transition: border-color 0.3s ease;
 }
 
-/* Efecto al hacer focus en los inputs */
 .input-group input:focus {
-  border-color: #d6a571; /* Color dorado suave al hacer focus */
-  box-shadow: 0px 0px 12px rgba(214, 165, 113, 0.5);
+  border-color: #007bff; /* Borde azul cuando está enfocado */
 }
 
-/* Botón con efecto */
+/* Botón de inicio de sesión */
 button {
-  background: linear-gradient(to right, #d6a571, #ff9800); /* Degradado dorado a naranja */
-  color: white;
+  background-color: #080808;
+  color: #fff;
+  padding: 12px 0;
   border: none;
-  padding: 15px 25px;
+  border-radius: 8px;
   width: 100%;
-  border-radius: 12px;
   font-size: 18px;
-  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
 }
 
-/* Efecto hover en el botón */
 button:hover {
-  background: linear-gradient(to right, #ff9800, #d6a571); /* Cambio de dirección del degradado */
-  transform: translateY(-4px);
-  box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.4);
+  background-color: #0d0d0e;
+  transform: translateY(-2px);
 }
-
 
 /* Mensaje de error */
 .error-message {
-  margin-top: 5px;
-  color: #ff4e4e; /* Color de texto rojo intenso */
-  font-weight: 600;
-  display: none; /* Oculto por defecto */
-  font-size: 16px; /* Aumento el tamaño para hacerlo más legible */
-  background-color: rgba(255, 0, 0, 0.1); /* Fondo rojo suave */
-  padding: 5px;
-  border-radius: 4px; /* Bordes redondeados */
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra sutil para dar profundidad */
-  animation: fadeIn 0.5s ease-in-out; /* Animación para que aparezca suavemente */
+  display: none;
+  margin-top: 15px;
+  color: #ff4d4d;
+  font-size: 14px;
 }
 
-/* Animación para que el mensaje de error aparezca con suavidad */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.error-message p {
+  margin: 0;
 }
 
-/* Mostrar el mensaje de error */
-.error-message.show {
-  display: block;
-}
 
-/* Estilos responsivos */
-@media (max-width: 480px) {
+/* Estilos de responsive */
+@media (max-width: 768px) {
   .login-box {
-    width: 85%;
-    padding: 20px;
+      padding: 30px;
+      width: 90%;
   }
 
   .login-box h1 {
-    font-size: 26px;
+      font-size: 26px;
   }
 
-  .input-group input,
+  .input-group input {
+      font-size: 16px;
+  }
+
   button {
-    font-size: 14px;
-  }
-
-  .login-box img {
-    width: 70%;
+      font-size: 16px;
   }
 }

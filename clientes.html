@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Clientes</title>
+    <link rel="stylesheet" href="/clientes.css">
+    <script>
+        const API_URL = "https://palegreen-starling-110684.hostingersite.com/cliente.php"; 
+        let clienteEditando = null;
+        let clientes = [];
+        let paginaActual = 1;
+        const clientesPorPagina = 5;
+
+        // Función para cargar clientes
+        async function cargarClientes() {
+            try {
+                const respuesta = await fetch(API_URL);
+                clientes = await respuesta.json();
+                const clientesMostrar = clientes.slice((paginaActual - 1) * clientesPorPagina, paginaActual * clientesPorPagina);
+
+                const tabla = document.getElementById("tabla-clientes").getElementsByTagName('tbody')[0];
+                tabla.innerHTML = clientesMostrar.map(cliente => `
+                    <tr>
+                        <td>${cliente.id}</td>
+                        <td>${cliente.nombre}</td>
+                        <td>${cliente.telefono}</td>
+                        <td>${cliente.direccion}</td>
+                        <td>
+                            <button class="edit-btn" onclick="editarCliente(${cliente.id}, '${cliente.nombre}', '${cliente.telefono}', '${cliente.direccion}')">Editar</button>
+                            <button class="btn-eliminar" onclick="eliminarCliente(${cliente.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join("");
+
+                actualizarPaginacion();
+            } catch (error) {
+                console.error("Error al cargar los clientes:", error);
+                mostrarMensaje("Hubo un problema al cargar los clientes.");
+            }
+        }
+
+        // Función para eliminar un cliente
+        async function eliminarCliente(id) {
+            if (confirm("¿Estás seguro de que quieres eliminar este cliente?")) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("Cliente eliminado correctamente");
+                        cargarClientes(); // Recargar la lista de clientes después de la eliminación
+                    } else {
+                        mostrarMensaje("Error al eliminar el cliente.");
+                    }
+                } catch (error) {
+                    console.error("Error al eliminar el cliente:", error);
+                    mostrarMensaje("Hubo un problema al eliminar el cliente.");
+                }
+            }
+        }
+
+        // Función para guardar o actualizar un cliente
+        async function guardarCliente() {
+            limpiarMensajes();
+
+            const nombre = document.getElementById("nombre").value;
+            const telefono = document.getElementById("telefono").value;
+            const direccion = document.getElementById("direccion").value;
+
+            if (!validarCampos(nombre, telefono, direccion)) return;
+
+            const clienteData = { nombre, telefono, direccion };
+
+            try {
+                let response;
+                if (clienteEditando) {
+                    clienteData.id = clienteEditando.id;
+                    response = await fetch(API_URL, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(clienteData)
+                    });
+                } else {
+                    response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(clienteData)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(clienteEditando ? "Cliente actualizado correctamente" : "Cliente agregado correctamente");
+                    cargarClientes();
+                    cerrarFormulario();
+                } else {
+                    mostrarMensaje(clienteEditando ? "Error al actualizar el cliente" : "Error al agregar el cliente");
+                }
+            } catch (error) {
+                console.error("Error al guardar el cliente:", error);
+                mostrarMensaje("Hubo un problema al guardar el cliente.");
+            }
+        }
+
+        // Validación de campos
+        function validarCampos(nombre, telefono, direccion) {
+            const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
+            const telefonoRegex = /^[0-9]{10}$/;
+
+            if (!nombre || !nombreRegex.test(nombre)) {
+                mostrarMensaje("Por favor ingresa un nombre válido (solo letras).");
+                return false;
+            }
+
+            if (!telefono || !telefonoRegex.test(telefono)) {
+                mostrarMensaje("Por favor ingresa un número de teléfono válido (10 dígitos).");
+                return false;
+            }
+
+            if (!direccion) {
+                mostrarMensaje("Por favor ingresa una dirección válida.");
+                return false;
+            }
+
+            return true;
+        }
+
+        function editarCliente(id, nombre, telefono, direccion) {
+            clienteEditando = { id, nombre, telefono, direccion };
+            document.getElementById("nombre").value = nombre;
+            document.getElementById("telefono").value = telefono;
+            document.getElementById("direccion").value = direccion;
+            mostrarFormulario();
+        }
+
+        function mostrarFormulario() {
+            document.getElementById("modal").style.display = "block";
+        }
+
+        function cerrarFormulario() {
+            document.getElementById("modal").style.display = "none";
+            document.getElementById("form-cliente").reset();
+            clienteEditando = null;
+            limpiarMensajes();
+        }
+
+        // Mostrar mensaje de error
+        function mostrarMensaje(mensaje) {
+            const mensajeDiv = document.getElementById("mensaje-error");
+            mensajeDiv.textContent = mensaje;
+            mensajeDiv.style.display = "block";
+        }
+
+        // Limpiar los mensajes de error
+        function limpiarMensajes() {
+            const mensajeDiv = document.getElementById("mensaje-error");
+            mensajeDiv.textContent = "";
+            mensajeDiv.style.display = "none";
+        }
+
+        document.addEventListener("DOMContentLoaded", cargarClientes);
+    </script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+              <li><a href="menu.html">Inicio</a></li>
+        
+              <li><a href="#">Administración</a>
+                <ul>
+                  <li><a href="#">Gestión Personal</a>
+                    <ul>
+                      <li><a href="empleados.html">Empleados</a></li>
+                      <li><a href="usuarios.html">Usuarios</a></li> 
+                    </ul>
+                  </li>
+                  <li><a href="#">Gestión Financiera</a>
+                    <ul>
+                      <li><a href="ventas.html">Ventas</a></li>
+                      <li><a href="gastos.html">Gastos</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+        
+              <li><a href="#">Operaciones</a>
+                <ul>
+                  <li><a href="#">Gestión de Producción</a>
+                    <ul>
+                      <li><a href="produccion.html">Producción</a></li>
+                      <li><a href="maquina.html">Máquina</a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#">Gestión de Abastecimientos</a>
+                    <ul>
+                      <li><a href="proveedores.html">Proveedores</a></li>
+                      <li><a href="inventario.html">Inventario</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+        
+              <li><a href="#">Comercialización</a>
+                <ul>
+                  <li><a href="#">Relaciones con Clientes</a>
+                    <ul>
+                      <li><a href="clientes.html">Clientes</a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#">Logística de Pedidos</a>
+                    <ul>
+                      <li><a href="pedidos.html">Pedidos</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+                  <!-- Agregar el enlace para cerrar sesión al final del menú -->
+      <li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <script>
+    function handleLogout() {
+      // Redirige al usuario a la página de inicio de sesión o página principal
+      window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+    }
+  </script>
+            </ul>
+            
+          </nav>
+    </header>
+
+
+    <div class="container">
+        <h1>Gestión de Clientes</h1>
+        <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Cliente</button>
+    </div>
+
+    <table id="tabla-clientes">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="paginacion"></div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2>Ingrese los datos del cliente</h2>
+            <form id="form-cliente">
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre" required>
+                <label for="telefono">Teléfono:</label>
+                <input type="text" id="telefono" name="telefono" required>
+                <label for="direccion">Dirección:</label>
+                <input type="text" id="direccion" name="direccion" required>
+                <button type="button" onclick="guardarCliente()">Guardar</button>
+                <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+            </form>
+            <div id="mensaje-error" style="color: red; display: none;"></div>
+        </div>
+    </div>
+</body>
+</html>

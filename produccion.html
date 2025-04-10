@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Producción</title>
+  <link rel="stylesheet" href="/produccion.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/produccion.php"; 
+    let produccionEditando = null;
+    let producciones = [];
+    let paginaActual = 1;
+    const produccionesPorPagina = 5;
+
+    async function cargarProduccion() {
+      try {
+        const respuesta = await fetch(API_URL);
+        producciones = await respuesta.json();
+        const produccionesMostrar = producciones.slice((paginaActual - 1) * produccionesPorPagina, paginaActual * produccionesPorPagina);
+
+        const tabla = document.getElementById("tabla-produccion").getElementsByTagName('tbody')[0];
+        tabla.innerHTML = produccionesMostrar.map(p => `
+          <tr>
+            <td>${p.id}</td>
+            <td>${p.fecha}</td>
+            <td>${p.lote}</td>
+            <td>${p.produccion_kg}</td>
+            <td>
+              <button class="edit-btn" onclick="editarProduccion(${p.id}, '${p.fecha}', '${p.lote}', ${p.produccion_kg})">Editar</button>
+              <button class="btn-eliminar" onclick="eliminarProduccion(${p.id})">Eliminar</button>
+            </td>
+          </tr>
+        `).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar la producción:", error);
+        mostrarMensaje("Hubo un problema al cargar la producción.");
+      }
+    }
+
+    async function eliminarProduccion(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar esta producción?")) {
+        try {
+          const response = await fetch(`${API_URL}?id=${id}`, {
+            method: 'DELETE',
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Producción eliminada correctamente");
+            cargarProduccion();
+          } else {
+            mostrarMensaje("Error al eliminar la producción.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar la producción:", error);
+          mostrarMensaje("Hubo un problema al eliminar la producción.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(producciones.length / produccionesPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(producciones.length / produccionesPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarProduccion();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-produccion").reset();
+      produccionEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarProduccion() {
+      limpiarMensajes();
+
+      const fecha = document.getElementById("fecha").value;
+      const lote = document.getElementById("lote").value;
+      const produccion_kg = document.getElementById("produccion_kg").value;
+
+      if (!fecha || !lote || !produccion_kg) {
+        mostrarMensaje("Todos los campos son obligatorios.");
+        return;
+      }
+
+      const produccionData = { fecha, lote, produccion_kg };
+
+      try {
+        let response;
+        if (produccionEditando) {
+          produccionData.id = produccionEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(produccionData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(produccionData)
+          });
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          alert(produccionEditando ? "Producción actualizada correctamente" : "Producción registrada correctamente");
+          cargarProduccion();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(produccionEditando ? "Error al actualizar la producción" : "Error al registrar la producción");
+        }
+      } catch (error) {
+        console.error("Error al guardar la producción:", error);
+        mostrarMensaje("Hubo un problema al guardar la producción.");
+      }
+    }
+
+    function editarProduccion(id, fecha, lote, produccion_kg) {
+      produccionEditando = { id, fecha, lote, produccion_kg };
+      document.getElementById("fecha").value = fecha;
+      document.getElementById("lote").value = lote;
+      document.getElementById("produccion_kg").value = produccion_kg;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarProduccion);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+            <!-- Agregar el enlace para cerrar sesión al final del menú -->
+<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+</ul>
+</nav>
+
+<script>
+function handleLogout() {
+// Redirige al usuario a la página de inicio de sesión o página principal
+window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+}
+</script>
+      </ul>
+      
+    </nav>
+</header>
+
+
+  <div class="container">
+    <h1>Gestión de Producción</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Producción</button>
+  </div>
+
+  <table id="tabla-produccion">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Lote</th>
+        <th>Producción (kg)</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Registrar o editar producción</h2>
+      <form id="form-produccion">
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" required>
+        <label for="lote">Lote:</label>
+        <input type="text" id="lote" name="lote" required>
+        <label for="produccion_kg">Producción (kg):</label>
+        <input type="number" step="0.01" id="produccion_kg" name="produccion_kg" required>
+        <button type="button" onclick="guardarProduccion()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>
+

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Inventario</title>
+  <link rel="stylesheet" href="/inventario.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/inventario.php";
+    let inventarioEditando = null;
+    let inventarios = [];
+    let paginaActual = 1;
+    const inventariosPorPagina = 5;
+
+    async function cargarInventario() {
+      try {
+        const respuesta = await fetch(API_URL);
+        inventarios = await respuesta.json();
+        const inventariosMostrar = inventarios.slice((paginaActual - 1) * inventariosPorPagina, paginaActual * inventariosPorPagina);
+
+        const tabla = document.getElementById("tabla-inventario").getElementsByTagName('tbody')[0];
+        tabla.innerHTML = inventariosMostrar.map(i => {
+          // Verificar si el nombre del proveedor está disponible
+          const proveedorNombre = i.proveedor || 'Proveedor desconocido';
+          return `
+            <tr>
+              <td>${i.id}</td>
+              <td>${i.materia_prima}</td>
+              <td>${i.stock}</td>
+              <td>${i.proveedor_id} - ${proveedorNombre}</td> <!-- Mostrar ID y nombre del proveedor -->
+              <td>
+                <button class="edit-btn" onclick="editarInventario(${i.id}, '${i.materia_prima}', '${i.stock}', '${i.proveedor_id}')">Editar</button>
+                <button class="btn-eliminar" onclick="eliminarInventario(${i.id})">Eliminar</button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar el inventario:", error);
+        mostrarMensaje("Hubo un problema al cargar el inventario.");
+      }
+    }
+
+    async function eliminarInventario(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar este ítem del inventario?")) {
+        try {
+          const response = await fetch(`${API_URL}?id=${id}`, {
+            method: 'DELETE',
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Ítem del inventario eliminado correctamente");
+            cargarInventario();
+          } else {
+            mostrarMensaje("Error al eliminar el ítem.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar el ítem:", error);
+          mostrarMensaje("Hubo un problema al eliminar el ítem.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(inventarios.length / inventariosPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(inventarios.length / inventariosPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarInventario();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-inventario").reset();
+      inventarioEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarInventario() {
+      limpiarMensajes();
+
+      const materia_prima = document.getElementById("materia_prima").value;
+      const stock = document.getElementById("stock").value;
+      const proveedor_id = document.getElementById("proveedor_id").value;
+
+      if (!materia_prima || !stock || !proveedor_id) {
+        mostrarMensaje("Todos los campos son obligatorios.");
+        return;
+      }
+
+      const inventarioData = { materia_prima, stock, proveedor_id };
+
+      try {
+        let response;
+        if (inventarioEditando) {
+          inventarioData.id = inventarioEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(inventarioData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(inventarioData)
+          });
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          alert(inventarioEditando ? "Ítem actualizado correctamente" : "Ítem registrado correctamente");
+          cargarInventario();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(inventarioEditando ? "Error al actualizar el ítem" : "Error al registrar el ítem");
+        }
+      } catch (error) {
+        console.error("Error al guardar el ítem:", error);
+        mostrarMensaje("Hubo un problema al guardar el ítem.");
+      }
+    }
+
+    function editarInventario(id, materia_prima, stock, proveedor_id) {
+      inventarioEditando = { id, materia_prima, stock, proveedor_id };
+      document.getElementById("materia_prima").value = materia_prima;
+      document.getElementById("stock").value = stock;
+      document.getElementById("proveedor_id").value = proveedor_id;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarInventario);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+            <!-- Agregar el enlace para cerrar sesión al final del menú -->
+<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+</ul>
+</nav>
+
+<script>
+function handleLogout() {
+// Redirige al usuario a la página de inicio de sesión o página principal
+window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+}
+</script>
+      </ul>
+      
+    </nav>
+</header>
+
+  <div class="container">
+    <h1>Gestión de Inventario</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Ítem</button>
+  </div>
+
+  <table id="tabla-inventario">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Materia Prima</th>
+        <th>Stock</th>
+        <th>Proveedor ID</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Registrar o editar ítem de inventario</h2>
+      <form id="form-inventario">
+        <label for="materia_prima">Materia Prima:</label>
+        <input type="text" id="materia_prima" name="materia_prima" required>
+        <label for="stock">Stock:</label>
+        <input type="number" id="stock" name="stock" required>
+        <label for="proveedor_id">Proveedor ID:</label>
+        <input type="number" id="proveedor_id" name="proveedor_id" required>
+        <button type="button" onclick="guardarInventario()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>

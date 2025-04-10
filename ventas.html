@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Ventas</title>
+  <link rel="stylesheet" href="/ventas.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/ventas.php";
+    let ventaEditando = null;
+    let ventas = [];
+    let paginaActual = 1;
+    const ventasPorPagina = 5;
+
+    async function cargarVentas() {
+      try {
+        const respuesta = await fetch(API_URL);
+        ventas = await respuesta.json();
+        const ventasMostrar = ventas.slice((paginaActual - 1) * ventasPorPagina, paginaActual * ventasPorPagina);
+
+        const tabla = document.getElementById("tabla-ventas").getElementsByTagName('tbody')[0];
+        tabla.innerHTML = ventasMostrar.map(v => `
+          <tr>
+            <td>${v.id}</td>
+            <td>${v.usuario_id}</td>
+            <td>${v.cliente_id}</td>
+            <td>${v.fecha}</td>
+            <td>${v.total}</td>
+            <td>
+              <button class="edit-btn" onclick="editarVenta(${v.id}, '${v.usuario_id}', '${v.cliente_id}', '${v.fecha}', '${v.total}')">Editar</button>
+              <button class="btn-eliminar" onclick="eliminarVenta(${v.id})">Eliminar</button>
+            </td>
+          </tr>
+        `).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar las ventas:", error);
+        mostrarMensaje("Hubo un problema al cargar las ventas.");
+      }
+    }
+
+    async function eliminarVenta(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar esta venta?")) {
+        try {
+          const response = await fetch(`${API_URL}?id=${id}`, {
+            method: 'DELETE',
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Venta eliminada correctamente");
+            cargarVentas();
+          } else {
+            mostrarMensaje("Error al eliminar la venta.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar la venta:", error);
+          mostrarMensaje("Hubo un problema al eliminar la venta.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(ventas.length / ventasPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(ventas.length / ventasPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarVentas();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-venta").reset();
+      ventaEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarVenta() {
+      limpiarMensajes();
+
+      const usuario_id = document.getElementById("usuario_id").value;
+      const cliente_id = document.getElementById("cliente_id").value;
+      const fecha = document.getElementById("fecha").value;
+      const total = document.getElementById("total").value;
+
+      if (!usuario_id || !cliente_id || !fecha || !total) {
+        mostrarMensaje("Todos los campos son obligatorios.");
+        return;
+      }
+
+      const ventaData = { usuario_id, cliente_id, fecha, total };
+
+      try {
+        let response;
+        if (ventaEditando) {
+          ventaData.id = ventaEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(ventaData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(ventaData)
+          });
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          alert(ventaEditando ? "Venta actualizada correctamente" : "Venta registrada correctamente");
+          cargarVentas();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(ventaEditando ? "Error al actualizar la venta" : "Error al registrar la venta");
+        }
+      } catch (error) {
+        console.error("Error al guardar la venta:", error);
+        mostrarMensaje("Hubo un problema al guardar la venta.");
+      }
+    }
+
+    function editarVenta(id, usuario_id, cliente_id, fecha, total) {
+      ventaEditando = { id, usuario_id, cliente_id, fecha, total };
+      document.getElementById("usuario_id").value = usuario_id;
+      document.getElementById("cliente_id").value = cliente_id;
+      document.getElementById("fecha").value = fecha;
+      document.getElementById("total").value = total;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarVentas);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+            <!-- Agregar el enlace para cerrar sesión al final del menú -->
+<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+</ul>
+</nav>
+
+<script>
+function handleLogout() {
+// Redirige al usuario a la página de inicio de sesión o página principal
+window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+}
+</script>
+      </ul>
+      
+    </nav>
+</header>
+
+
+  <div class="container">
+    <h1>Gestión de Ventas</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Venta</button>
+  </div>
+
+  <table id="tabla-ventas">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Usuario ID</th>
+        <th>Cliente ID</th>
+        <th>Fecha</th>
+        <th>Total</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Registrar o editar venta</h2>
+      <form id="form-venta">
+        <label for="usuario_id">Usuario ID:</label>
+        <input type="number" id="usuario_id" name="usuario_id" required>
+        <label for="cliente_id">Cliente ID:</label>
+        <input type="number" id="cliente_id" name="cliente_id" required>
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" required>
+        <label for="total">Total:</label>
+        <input type="number" step="0.01" id="total" name="total" required>
+        <button type="button" onclick="guardarVenta()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>

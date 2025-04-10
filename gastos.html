@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Gastos</title>
+  <link rel="stylesheet" href="/gastos.css" />
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/gastos.php";
+    let gastoEditando = null;
+    let gastos = [];
+    let paginaActual = 1;
+    const gastosPorPagina = 5;
+
+    async function cargarGastos() {
+      try {
+        const respuesta = await fetch(API_URL);
+        gastos = await respuesta.json();
+        const gastosMostrar = gastos.slice((paginaActual - 1) * gastosPorPagina, paginaActual * gastosPorPagina);
+
+        const tabla = document.getElementById("tabla-gastos").getElementsByTagName('tbody')[0];
+        tabla.innerHTML = gastosMostrar.map(g => `
+          <tr>
+            <td>${g.folio}</td>
+            <td>${g.concepto}</td>
+            <td>${g.monto}</td>
+            <td>
+              <button class="edit-btn" onclick="editarGasto(${g.folio}, '${g.concepto}', '${g.monto}')">Editar</button>
+              <button class="btn-eliminar" onclick="eliminarGasto(${g.folio})">Eliminar</button>
+            </td>
+          </tr>
+        `).join("");
+
+        actualizarPaginacion();
+      } catch (error) {
+        console.error("Error al cargar los gastos:", error);
+        mostrarMensaje("Hubo un problema al cargar los gastos.");
+      }
+    }
+
+    async function eliminarGasto(folio) {
+      if (confirm("¿Estás seguro de que quieres eliminar este gasto?")) {
+        try {
+          const response = await fetch(`${API_URL}?folio=${folio}`, {
+            method: 'DELETE',
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            alert("Gasto eliminado correctamente");
+            cargarGastos();
+          } else {
+            mostrarMensaje("Error al eliminar el gasto.");
+          }
+        } catch (error) {
+          console.error("Error al eliminar el gasto:", error);
+          mostrarMensaje("Hubo un problema al eliminar el gasto.");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(gastos.length / gastosPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(gastos.length / gastosPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarGastos();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-gasto").reset();
+      gastoEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje) {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje-error");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarGasto() {
+      limpiarMensajes();
+
+      const concepto = document.getElementById("concepto").value;
+      const monto = document.getElementById("monto").value;
+
+      if (!concepto || !monto) {
+        mostrarMensaje("Todos los campos son obligatorios.");
+        return;
+      }
+
+      const gastoData = { concepto, monto };
+
+      try {
+        let response;
+        if (gastoEditando) {
+          gastoData.folio = gastoEditando.folio;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(gastoData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(gastoData)
+          });
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          alert(gastoEditando ? "Gasto actualizado correctamente" : "Gasto registrado correctamente");
+          cargarGastos();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(gastoEditando ? "Error al actualizar el gasto" : "Error al registrar el gasto");
+        }
+      } catch (error) {
+        console.error("Error al guardar el gasto:", error);
+        mostrarMensaje("Hubo un problema al guardar el gasto.");
+      }
+    }
+
+    function editarGasto(folio, concepto, monto) {
+      gastoEditando = { folio, concepto, monto };
+      document.getElementById("concepto").value = concepto;
+      document.getElementById("monto").value = monto;
+      mostrarFormulario();
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarGastos);
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="menu.html">Inicio</a></li>
+  
+        <li><a href="#">Administración</a>
+          <ul>
+            <li><a href="#">Gestión Personal</a>
+              <ul>
+                <li><a href="empleados.html">Empleados</a></li>
+                <li><a href="usuarios.html">Usuarios</a></li> 
+              </ul>
+            </li>
+            <li><a href="#">Gestión Financiera</a>
+              <ul>
+                <li><a href="ventas.html">Ventas</a></li>
+                <li><a href="gastos.html">Gastos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Operaciones</a>
+          <ul>
+            <li><a href="#">Gestión de Producción</a>
+              <ul>
+                <li><a href="produccion.html">Producción</a></li>
+                <li><a href="maquina.html">Máquina</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Gestión de Abastecimientos</a>
+              <ul>
+                <li><a href="proveedores.html">Proveedores</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+  
+        <li><a href="#">Comercialización</a>
+          <ul>
+            <li><a href="#">Relaciones con Clientes</a>
+              <ul>
+                <li><a href="clientes.html">Clientes</a></li>
+              </ul>
+            </li>
+            <li><a href="#">Logística de Pedidos</a>
+              <ul>
+                <li><a href="pedidos.html">Pedidos</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+            <!-- Agregar el enlace para cerrar sesión al final del menú -->
+<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+</ul>
+</nav>
+
+<script>
+function handleLogout() {
+// Redirige al usuario a la página de inicio de sesión o página principal
+window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
+}
+</script>
+      </ul>
+      
+    </nav>
+</header>
+
+
+  <div class="container">
+    <h1>Gestión de Gastos</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Gasto</button>
+  </div>
+
+  <table id="tabla-gastos">
+    <thead>
+      <tr>
+        <th>Folio</th>
+        <th>Concepto</th>
+        <th>Monto</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="paginacion"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Registrar o editar gasto</h2>
+      <form id="form-gasto">
+        <label for="concepto">Concepto:</label>
+        <input type="text" id="concepto" name="concepto" required>
+        <label for="monto">Monto:</label>
+        <input type="number" step="0.01" id="monto" name="monto" required>
+        <button type="button" onclick="guardarGasto()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje-error" style="color: red; display: none;"></div>
+    </div>
+  </div>
+</body>
+</html>
