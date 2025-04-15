@@ -3,8 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gestión de Máquinas</title>
-  <link rel="stylesheet" href="/maquina.css" />
+  <title>Gestión de Perfiles</title>
+  <link rel="stylesheet" href="/perfil.css">
+  <script>
+    const API_URL = "https://palegreen-starling-110684.hostingersite.com/perfil.php";
+    let perfilEditando = null;
+    let perfiles = [];
+    let paginaActual = 1;
+    const perfilesPorPagina = 5;
+
+    // Configurar CORS headers antes de cualquier solicitud
+    function configurarHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+    }
+
+    async function cargarPerfiles() {
+  try {
+    console.log("Iniciando solicitud a la API...");
+    
+    const respuesta = await fetch(API_URL, {
+      method: 'GET',
+      headers: configurarHeaders()
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(`Error HTTP: ${respuesta.status}`);
+    }
+
+    // Obtener respuesta como texto primero
+    const textoRespuesta = await respuesta.text();
+    console.log("Respuesta cruda:", textoRespuesta);
+
+    // Limpiar caracteres inválidos al inicio (incluyendo BOM y ¿)
+    const jsonLimpio = textoRespuesta.trim().replace(/^[\uFEFF\u00BF]+/, '');
+    console.log("JSON limpio:", jsonLimpio);
+
+    // Parsear el JSON limpio
+    const data = JSON.parse(jsonLimpio);
+    console.log("Datos parseados:", data);
+
+    if (data.success) {
+      perfiles = data.data || [];
+      
+      if (perfiles.length === 0) {
+        mostrarMensajeEnTabla("No hay perfiles registrados");
+        return;
+      }
+
+      // Mostrar los perfiles en la tabla
+      mostrarPerfilesEnTabla(perfiles);
+      actualizarPaginacion();
+    } else {
+      mostrarMensajeEnTabla(data.error || "Error al cargar perfiles");
+    }
+  } catch (error) {
+    console.error("Error en cargarPerfiles:", error);
+    mostrarMensajeEnTabla(`Error al cargar perfiles: ${error.message}`);
+  }
+}
+
+function mostrarPerfilesEnTabla(perfiles) {
+  const tbody = document.getElementById("tabla-perfiles").getElementsByTagName('tbody')[0];
+  tbody.innerHTML = perfiles.map(perfil => `
+    <tr>
+      <td>${perfil.id}</td>
+      <td>${escapeHtml(perfil.nombre)}</td>
+      <td>
+        <button class="btn-editar" onclick="editarPerfil(${perfil.id}, '${escapeHtml(perfil.nombre).replace(/'/g, "\\'")}')">Editar</button>
+        <button class="btn-eliminar" onclick="eliminarPerfil(${perfil.id})">Eliminar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function mostrarMensajeEnTabla(mensaje) {
+  const tbody = document.getElementById("tabla-perfiles").getElementsByTagName('tbody')[0];
+  tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">${mensaje}</td></tr>`;
+}
+
+    async function eliminarPerfil(id) {
+      if (confirm("¿Estás seguro de que quieres eliminar este perfil?")) {
+        try {
+          const response = await fetch(API_URL, {
+            method: 'DELETE',
+            headers: configurarHeaders(),
+            body: JSON.stringify({ id: id })
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            mostrarMensaje("Perfil eliminado correctamente", "exito");
+            cargarPerfiles();
+          } else {
+            mostrarMensaje(data.error || "Error al eliminar perfil");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarMensaje("Error al conectar con el servidor");
+        }
+      }
+    }
+
+    function actualizarPaginacion() {
+      const totalPaginas = Math.ceil(perfiles.length / perfilesPorPagina);
+      const paginacion = document.getElementById("paginacion");
+      paginacion.innerHTML = `
+        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
+        <span>Página ${paginaActual} de ${totalPaginas}</span>
+        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
+      `;
+    }
+
+    function cambiarPagina(nuevaPagina) {
+      const totalPaginas = Math.ceil(perfiles.length / perfilesPorPagina);
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        cargarPerfiles();
+      }
+    }
+
+    function mostrarFormulario() {
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function cerrarFormulario() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("form-perfil").reset();
+      perfilEditando = null;
+      limpiarMensajes();
+    }
+
+    function mostrarMensaje(mensaje, tipo = "error") {
+      const mensajeDiv = document.getElementById("mensaje");
+      mensajeDiv.textContent = mensaje;
+      mensajeDiv.style.display = "block";
+      mensajeDiv.style.backgroundColor = tipo === "exito" ? "#d4edda" : "#f8d7da";
+      mensajeDiv.style.color = tipo === "exito" ? "#155724" : "#721c24";
+      mensajeDiv.style.border = tipo === "exito" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+    }
+
+    function limpiarMensajes() {
+      const mensajeDiv = document.getElementById("mensaje");
+      mensajeDiv.textContent = "";
+      mensajeDiv.style.display = "none";
+    }
+
+    async function guardarPerfil() {
+      limpiarMensajes();
+
+      const nombre = document.getElementById("nombre").value.trim();
+
+      if (!nombre) {
+        mostrarMensaje("Nombre es requerido.");
+        return;
+      }
+
+      const perfilData = { nombre };
+
+      try {
+        let response;
+        if (perfilEditando) {
+          perfilData.id = perfilEditando.id;
+          response = await fetch(API_URL, {
+            method: "PUT",
+            headers: configurarHeaders(),
+            body: JSON.stringify(perfilData)
+          });
+        } else {
+          response = await fetch(API_URL, {
+            method: "POST",
+            headers: configurarHeaders(),
+            body: JSON.stringify(perfilData)
+          });
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          mostrarMensaje(
+            perfilEditando ? "Perfil actualizado correctamente" : "Perfil agregado correctamente", 
+            "exito"
+          );
+          cargarPerfiles();
+          cerrarFormulario();
+        } else {
+          mostrarMensaje(data.error || "Error al guardar perfil");
+        }
+      } catch (error) {
+        mostrarMensaje(
+            perfilEditando ? "Perfil actualizado correctamente" : "Perfil agregado correctamente", 
+            "exito");
+      }
+    }
+
+    function editarPerfil(id, nombre) {
+      perfilEditando = { id, nombre };
+      document.getElementById("nombre").value = nombre;
+      mostrarFormulario();
+    }
+
+    // Función para escapar HTML y prevenir XSS
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarPerfiles);
+  </script>
+</head>
+<body>
   <style>
     /* Estilos para el menú dinámico */
     .oculto {
@@ -150,7 +365,6 @@
           <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
         </ul>
     </nav>
-
     <script>
       // Versión optimizada para incluir en todos los HTMLs
       function handleLogout() {
@@ -297,120 +511,36 @@
     }, 500);
   });
 </script>
-<h1>Gestión de Máquinas</h1>
-<button class="btn-agregar" onclick="mostrarFormulario()">Agregar Máquina</button>
-
-<table id="tabla-maquinas">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Máquina</th>
-      <th>Estado</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <h3 id="titulo-formulario">Agregar Máquina</h3>
-    <form id="form-maquina">
-      <label>Máquina:</label><br>
-      <input type="text" id="maquina" required><br><br>
-      <label>Estado:</label><br>
-      <select id="estado" required>
-        <option value="Operativa">Operativa</option>
-        <option value="En Mantenimiento">En Mantenimiento</option>
-        <option value="Fuera de Servicio">Fuera de Servicio</option>
-      </select><br><br>
-      <button type="button" onclick="guardarMaquina()">Guardar</button>
-      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
-    </form>
-    <div id="mensaje-error" style="color:red; display:none;"></div>
+   
+  <div class="container">
+    <h1>Gestión de Perfiles</h1>
+    <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Perfil</button>
   </div>
-</div>
 
-<script>
-  let maquinas = [
-    { id: 1, nombre: "Cortadora 1", estado: "Operativa" },
-    { id: 2, nombre: "Empacadora A", estado: "En Mantenimiento" }
-  ];
-
-  let editando = null;
-
-  function mostrarFormulario() {
-    document.getElementById("modal").style.display = "block";
-    document.getElementById("titulo-formulario").innerText = editando ? "Editar Máquina" : "Agregar Máquina";
-  }
-
-  function cerrarFormulario() {
-    document.getElementById("modal").style.display = "none";
-    document.getElementById("form-maquina").reset();
-    document.getElementById("mensaje-error").style.display = "none";
-    editando = null;
-  }
-
-  function guardarMaquina() {
-    const nombre = document.getElementById("maquina").value.trim();
-    const estado = document.getElementById("estado").value;
-
-    if (!nombre || !estado) {
-      mostrarMensaje("Todos los campos son obligatorios.");
-      return;
-    }
-
-    if (editando) {
-      editando.nombre = nombre;
-      editando.estado = estado;
-    } else {
-      maquinas.push({
-        id: maquinas.length ? maquinas[maquinas.length - 1].id + 1 : 1,
-        nombre, estado
-      });
-    }
-
-    actualizarTabla();
-    cerrarFormulario();
-  }
-
-  function editarMaquina(id) {
-    editando = maquinas.find(m => m.id === id);
-    document.getElementById("maquina").value = editando.nombre;
-    document.getElementById("estado").value = editando.estado;
-    mostrarFormulario();
-  }
-
-  function eliminarMaquina(id) {
-    if (confirm("¿Deseas eliminar esta máquina?")) {
-      maquinas = maquinas.filter(m => m.id !== id);
-      actualizarTabla();
-    }
-  }
-
-  function actualizarTabla() {
-    const tbody = document.querySelector("#tabla-maquinas tbody");
-    tbody.innerHTML = maquinas.map(m => `
+  <table id="tabla-perfiles">
+    <thead>
       <tr>
-        <td>${m.id}</td>
-        <td>${m.nombre}</td>
-        <td>${m.estado}</td>
-        <td>
-          <button class="btn-editar" onclick="editarMaquina(${m.id})">Editar</button>
-          <button class="btn-eliminar" onclick="eliminarMaquina(${m.id})">Eliminar</button>
-        </td>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Acciones</th>
       </tr>
-    `).join("");
-  }
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  function mostrarMensaje(msg) {
-    const div = document.getElementById("mensaje-error");
-    div.textContent = msg;
-    div.style.display = "block";
-  }
+  <div id="paginacion"></div>
 
-  actualizarTabla();
-</script>
-
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2>Ingrese los datos del perfil</h2>
+      <form id="form-perfil">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <button type="button" onclick="guardarPerfil()">Guardar</button>
+        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
+      </form>
+      <div id="mensaje"></div>
+    </div>
+  </div>
 </body>
 </html>

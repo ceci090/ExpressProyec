@@ -3,260 +3,412 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestión de Gastos</title>
+  <title>Gestión de Gastos (Estático)</title>
   <link rel="stylesheet" href="/gastos.css" />
-  <script>
-    const API_URL = "https://palegreen-starling-110684.hostingersite.com/gastos.php";
-    let gastoEditando = null;
-    let gastos = [];
-    let paginaActual = 1;
-    const gastosPorPagina = 5;
-
-    async function cargarGastos() {
-      try {
-        const respuesta = await fetch(API_URL);
-        gastos = await respuesta.json();
-        const gastosMostrar = gastos.slice((paginaActual - 1) * gastosPorPagina, paginaActual * gastosPorPagina);
-
-        const tabla = document.getElementById("tabla-gastos").getElementsByTagName('tbody')[0];
-        tabla.innerHTML = gastosMostrar.map(g => `
-          <tr>
-            <td>${g.folio}</td>
-            <td>${g.concepto}</td>
-            <td>${g.monto}</td>
-            <td>
-              <button class="edit-btn" onclick="editarGasto(${g.folio}, '${g.concepto}', '${g.monto}')">Editar</button>
-              <button class="btn-eliminar" onclick="eliminarGasto(${g.folio})">Eliminar</button>
-            </td>
-          </tr>
-        `).join("");
-
-        actualizarPaginacion();
-      } catch (error) {
-        console.error("Error al cargar los gastos:", error);
-        mostrarMensaje("Hubo un problema al cargar los gastos.");
-      }
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
     }
-
-    async function eliminarGasto(folio) {
-      if (confirm("¿Estás seguro de que quieres eliminar este gasto?")) {
-        try {
-          const response = await fetch(`${API_URL}?folio=${folio}`, {
-            method: 'DELETE',
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert("Gasto eliminado correctamente");
-            cargarGastos();
-          } else {
-            mostrarMensaje("Error al eliminar el gasto.");
-          }
-        } catch (error) {
-          console.error("Error al eliminar el gasto:", error);
-          mostrarMensaje("Hubo un problema al eliminar el gasto.");
-        }
-      }
+    
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
     }
-
-    function actualizarPaginacion() {
-      const totalPaginas = Math.ceil(gastos.length / gastosPorPagina);
-      const paginacion = document.getElementById("paginacion");
-      paginacion.innerHTML = `
-        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-        <span>Página ${paginaActual} de ${totalPaginas}</span>
-        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
-      `;
+    
+    nav ul li:hover > ul {
+      display: block;
     }
-
-    function cambiarPagina(nuevaPagina) {
-      const totalPaginas = Math.ceil(gastos.length / gastosPorPagina);
-      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-        paginaActual = nuevaPagina;
-        cargarGastos();
-      }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
     }
-
-    function mostrarFormulario() {
-      document.getElementById("modal").style.display = "block";
+    
+    nav ul li {
+      float: left;
+      position: relative;
     }
-
-    function cerrarFormulario() {
-      document.getElementById("modal").style.display = "none";
-      document.getElementById("form-gasto").reset();
-      gastoEditando = null;
-      limpiarMensajes();
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
     }
-
-    function mostrarMensaje(mensaje) {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.style.display = "block";
+    
+    nav ul li a:hover {
+      background: #555;
     }
-
-    function limpiarMensajes() {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = "";
-      mensajeDiv.style.display = "none";
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
     }
-
-    async function guardarGasto() {
-      limpiarMensajes();
-
-      const concepto = document.getElementById("concepto").value;
-      const monto = document.getElementById("monto").value;
-
-      if (!concepto || !monto) {
-        mostrarMensaje("Todos los campos son obligatorios.");
-        return;
-      }
-
-      const gastoData = { concepto, monto };
-
-      try {
-        let response;
-        if (gastoEditando) {
-          gastoData.folio = gastoEditando.folio;
-          response = await fetch(API_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(gastoData)
-          });
-        } else {
-          response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(gastoData)
-          });
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          alert(gastoEditando ? "Gasto actualizado correctamente" : "Gasto registrado correctamente");
-          cargarGastos();
-          cerrarFormulario();
-        } else {
-          mostrarMensaje(gastoEditando ? "Error al actualizar el gasto" : "Error al registrar el gasto");
-        }
-      } catch (error) {
-        console.error("Error al guardar el gasto:", error);
-        mostrarMensaje("Hubo un problema al guardar el gasto.");
-      }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
     }
-
-    function editarGasto(folio, concepto, monto) {
-      gastoEditando = { folio, concepto, monto };
-      document.getElementById("concepto").value = concepto;
-      document.getElementById("monto").value = monto;
-      mostrarFormulario();
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
     }
-
-    document.addEventListener("DOMContentLoaded", cargarGastos);
-  </script>
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
 </head>
 <body>
-  <header>
+</head>
+<body>
+</head>
+<body>
     <nav>
-      <ul>
-        <li><a href="menu.html">Inicio</a></li>
-  
-        <li><a href="#">Administración</a>
-          <ul>
-            <li><a href="#">Gestión Personal</a>
-              <ul>
-                <li><a href="empleados.html">Empleados</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li> 
-              </ul>
-            </li>
-            <li><a href="#">Gestión Financiera</a>
-              <ul>
-                <li><a href="ventas.html">Ventas</a></li>
-                <li><a href="gastos.html">Gastos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Operaciones</a>
-          <ul>
-            <li><a href="#">Gestión de Producción</a>
-              <ul>
-                <li><a href="produccion.html">Producción</a></li>
-                <li><a href="maquina.html">Máquina</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Gestión de Abastecimientos</a>
-              <ul>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="inventario.html">Inventario</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Comercialización</a>
-          <ul>
-            <li><a href="#">Relaciones con Clientes</a>
-              <ul>
-                <li><a href="clientes.html">Clientes</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logística de Pedidos</a>
-              <ul>
-                <li><a href="pedidos.html">Pedidos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-            <!-- Agregar el enlace para cerrar sesión al final del menú -->
-<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-</ul>
-</nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    <script>
+      // Versión optimizada para incluir en todos los HTMLs
+      function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
+            
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
+    </script>
+    <!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
+
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
+    }
+  }
+
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+
+<h1>Gestión de Gastos</h1>
+<button class="btn-agregar" onclick="mostrarFormulario()">Registrar Gasto</button>
+
+<table id="tabla-gastos">
+  <thead>
+    <tr>
+      <th>Folio</th>
+      <th>Concepto</th>
+      <th>Monto</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="titulo-formulario">Registrar Gasto</h3>
+    <form id="form-gasto">
+      <label>Concepto:</label>
+      <input type="text" id="concepto" required><br><br>
+      <label>Monto:</label>
+      <input type="number" id="monto" required><br><br>
+      <button type="button" onclick="guardarGasto()">Guardar</button>
+      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+    </form>
+    <div id="mensaje-error" style="color:red; display:none;"></div>
+  </div>
+</div>
 
 <script>
-function handleLogout() {
-// Redirige al usuario a la página de inicio de sesión o página principal
-window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-}
-</script>
-      </ul>
-      
-    </nav>
-</header>
+  // Datos de ejemplo
+  let gastos = [
+    { folio: 1, concepto: "Compra de insumos", monto: 1200.50 },
+    { folio: 2, concepto: "Pago de servicios", monto: 850.00 }
+  ];
 
+  let gastoEditando = null;
 
-  <div class="container">
-    <h1>Gestión de Gastos</h1>
-    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Gasto</button>
-  </div>
+  function mostrarFormulario() {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("titulo-formulario").innerText = gastoEditando ? "Editar Gasto" : "Registrar Gasto";
+  }
 
-  <table id="tabla-gastos">
-    <thead>
+  function cerrarFormulario() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("form-gasto").reset();
+    document.getElementById("mensaje-error").style.display = "none";
+    gastoEditando = null;
+  }
+
+  function guardarGasto() {
+    const concepto = document.getElementById("concepto").value.trim();
+    const monto = parseFloat(document.getElementById("monto").value);
+
+    if (!concepto || isNaN(monto) || monto <= 0) {
+      mostrarMensaje("Concepto y monto válido son requeridos.");
+      return;
+    }
+
+    if (gastoEditando) {
+      gastoEditando.concepto = concepto;
+      gastoEditando.monto = monto;
+    } else {
+      const nuevoGasto = {
+        folio: gastos.length ? gastos[gastos.length - 1].folio + 1 : 1,
+        concepto, monto
+      };
+      gastos.push(nuevoGasto);
+    }
+
+    actualizarTabla();
+    cerrarFormulario();
+  }
+
+  function editarGasto(folio) {
+    gastoEditando = gastos.find(g => g.folio === folio);
+    document.getElementById("concepto").value = gastoEditando.concepto;
+    document.getElementById("monto").value = gastoEditando.monto;
+    mostrarFormulario();
+  }
+
+  function eliminarGasto(folio) {
+    if (confirm("¿Seguro que deseas eliminar este gasto?")) {
+      gastos = gastos.filter(g => g.folio !== folio);
+      actualizarTabla();
+    }
+  }
+
+  function actualizarTabla() {
+    const tbody = document.querySelector("#tabla-gastos tbody");
+    tbody.innerHTML = gastos.map(g => `
       <tr>
-        <th>Folio</th>
-        <th>Concepto</th>
-        <th>Monto</th>
-        <th>Acciones</th>
+        <td>${g.folio}</td>
+        <td>${g.concepto}</td>
+        <td>$${g.monto.toFixed(2)}</td>
+        <td>
+          <button class="btn-editar" onclick="editarGasto(${g.folio})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarGasto(${g.folio})">Eliminar</button>
+        </td>
       </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    `).join("");
+  }
 
-  <div id="paginacion"></div>
+  function mostrarMensaje(mensaje) {
+    const div = document.getElementById("mensaje-error");
+    div.textContent = mensaje;
+    div.style.display = "block";
+  }
 
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <h2>Registrar o editar gasto</h2>
-      <form id="form-gasto">
-        <label for="concepto">Concepto:</label>
-        <input type="text" id="concepto" name="concepto" required>
-        <label for="monto">Monto:</label>
-        <input type="number" step="0.01" id="monto" name="monto" required>
-        <button type="button" onclick="guardarGasto()">Guardar</button>
-        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
-      </form>
-      <div id="mensaje-error" style="color: red; display: none;"></div>
-    </div>
-  </div>
+  actualizarTabla();
+</script>
+
 </body>
 </html>

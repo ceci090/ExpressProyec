@@ -1,271 +1,416 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gestión de Inventario</title>
   <link rel="stylesheet" href="/inventario.css" />
-  <script>
-    const API_URL = "https://palegreen-starling-110684.hostingersite.com/inventario.php";
-    let inventarioEditando = null;
-    let inventarios = [];
-    let paginaActual = 1;
-    const inventariosPorPagina = 5;
-
-    async function cargarInventario() {
-      try {
-        const respuesta = await fetch(API_URL);
-        inventarios = await respuesta.json();
-        const inventariosMostrar = inventarios.slice((paginaActual - 1) * inventariosPorPagina, paginaActual * inventariosPorPagina);
-
-        const tabla = document.getElementById("tabla-inventario").getElementsByTagName('tbody')[0];
-        tabla.innerHTML = inventariosMostrar.map(i => {
-          // Verificar si el nombre del proveedor está disponible
-          const proveedorNombre = i.proveedor || 'Proveedor desconocido';
-          return `
-            <tr>
-              <td>${i.id}</td>
-              <td>${i.materia_prima}</td>
-              <td>${i.stock}</td>
-              <td>${i.proveedor_id} - ${proveedorNombre}</td> <!-- Mostrar ID y nombre del proveedor -->
-              <td>
-                <button class="edit-btn" onclick="editarInventario(${i.id}, '${i.materia_prima}', '${i.stock}', '${i.proveedor_id}')">Editar</button>
-                <button class="btn-eliminar" onclick="eliminarInventario(${i.id})">Eliminar</button>
-              </td>
-            </tr>
-          `;
-        }).join("");
-
-        actualizarPaginacion();
-      } catch (error) {
-        console.error("Error al cargar el inventario:", error);
-        mostrarMensaje("Hubo un problema al cargar el inventario.");
-      }
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
     }
-
-    async function eliminarInventario(id) {
-      if (confirm("¿Estás seguro de que quieres eliminar este ítem del inventario?")) {
-        try {
-          const response = await fetch(`${API_URL}?id=${id}`, {
-            method: 'DELETE',
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert("Ítem del inventario eliminado correctamente");
-            cargarInventario();
-          } else {
-            mostrarMensaje("Error al eliminar el ítem.");
-          }
-        } catch (error) {
-          console.error("Error al eliminar el ítem:", error);
-          mostrarMensaje("Hubo un problema al eliminar el ítem.");
-        }
-      }
+    
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
     }
-
-    function actualizarPaginacion() {
-      const totalPaginas = Math.ceil(inventarios.length / inventariosPorPagina);
-      const paginacion = document.getElementById("paginacion");
-      paginacion.innerHTML = `
-        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-        <span>Página ${paginaActual} de ${totalPaginas}</span>
-        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
-      `;
+    
+    nav ul li:hover > ul {
+      display: block;
     }
-
-    function cambiarPagina(nuevaPagina) {
-      const totalPaginas = Math.ceil(inventarios.length / inventariosPorPagina);
-      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-        paginaActual = nuevaPagina;
-        cargarInventario();
-      }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
     }
-
-    function mostrarFormulario() {
-      document.getElementById("modal").style.display = "block";
+    
+    nav ul li {
+      float: left;
+      position: relative;
     }
-
-    function cerrarFormulario() {
-      document.getElementById("modal").style.display = "none";
-      document.getElementById("form-inventario").reset();
-      inventarioEditando = null;
-      limpiarMensajes();
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
     }
-
-    function mostrarMensaje(mensaje) {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.style.display = "block";
+    
+    nav ul li a:hover {
+      background: #555;
     }
-
-    function limpiarMensajes() {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = "";
-      mensajeDiv.style.display = "none";
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
     }
-
-    async function guardarInventario() {
-      limpiarMensajes();
-
-      const materia_prima = document.getElementById("materia_prima").value;
-      const stock = document.getElementById("stock").value;
-      const proveedor_id = document.getElementById("proveedor_id").value;
-
-      if (!materia_prima || !stock || !proveedor_id) {
-        mostrarMensaje("Todos los campos son obligatorios.");
-        return;
-      }
-
-      const inventarioData = { materia_prima, stock, proveedor_id };
-
-      try {
-        let response;
-        if (inventarioEditando) {
-          inventarioData.id = inventarioEditando.id;
-          response = await fetch(API_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(inventarioData)
-          });
-        } else {
-          response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(inventarioData)
-          });
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          alert(inventarioEditando ? "Ítem actualizado correctamente" : "Ítem registrado correctamente");
-          cargarInventario();
-          cerrarFormulario();
-        } else {
-          mostrarMensaje(inventarioEditando ? "Error al actualizar el ítem" : "Error al registrar el ítem");
-        }
-      } catch (error) {
-        console.error("Error al guardar el ítem:", error);
-        mostrarMensaje("Hubo un problema al guardar el ítem.");
-      }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
     }
-
-    function editarInventario(id, materia_prima, stock, proveedor_id) {
-      inventarioEditando = { id, materia_prima, stock, proveedor_id };
-      document.getElementById("materia_prima").value = materia_prima;
-      document.getElementById("stock").value = stock;
-      document.getElementById("proveedor_id").value = proveedor_id;
-      mostrarFormulario();
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
     }
-
-    document.addEventListener("DOMContentLoaded", cargarInventario);
-  </script>
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
 </head>
 <body>
-  <header>
+</head>
+<body>
+</head>
+<body>
     <nav>
-      <ul>
-        <li><a href="menu.html">Inicio</a></li>
-  
-        <li><a href="#">Administración</a>
-          <ul>
-            <li><a href="#">Gestión Personal</a>
-              <ul>
-                <li><a href="empleados.html">Empleados</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li> 
-              </ul>
-            </li>
-            <li><a href="#">Gestión Financiera</a>
-              <ul>
-                <li><a href="ventas.html">Ventas</a></li>
-                <li><a href="gastos.html">Gastos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Operaciones</a>
-          <ul>
-            <li><a href="#">Gestión de Producción</a>
-              <ul>
-                <li><a href="produccion.html">Producción</a></li>
-                <li><a href="maquina.html">Máquina</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Gestión de Abastecimientos</a>
-              <ul>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="inventario.html">Inventario</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Comercialización</a>
-          <ul>
-            <li><a href="#">Relaciones con Clientes</a>
-              <ul>
-                <li><a href="clientes.html">Clientes</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logística de Pedidos</a>
-              <ul>
-                <li><a href="pedidos.html">Pedidos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-            <!-- Agregar el enlace para cerrar sesión al final del menú -->
-<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-</ul>
-</nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    <script>
+      // Versión optimizada para incluir en todos los HTMLs
+      function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
+            
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
+    </script>
+    <!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
+
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
+    }
+  }
+
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+<h1>Gestión de Inventario</h1>
+<button class="btn-agregar" onclick="mostrarFormulario()">Agregar Materia Prima</button>
+
+<table id="tabla-inventario">
+  <thead>
+    <tr>
+      <th>Materia Prima</th>
+      <th>Stock</th>
+      <th>Proveedor ID</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="titulo-formulario">Agregar Materia Prima</h3>
+    <form id="form-inventario">
+      <label>Materia Prima:</label><br>
+      <input type="text" id="materiaPrima" required><br><br>
+      <label>Stock:</label><br>
+      <input type="number" id="stock" required><br><br>
+      <label>Proveedor ID:</label><br>
+      <input type="number" id="proveedorId" required><br><br>
+      <button type="button" onclick="guardarInventario()">Guardar</button>
+      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+    </form>
+    <div id="mensaje-error" style="color:red; display:none;"></div>
+  </div>
+</div>
 
 <script>
-function handleLogout() {
-// Redirige al usuario a la página de inicio de sesión o página principal
-window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-}
-</script>
-      </ul>
-      
-    </nav>
-</header>
+  let inventario = [
+    { id: 1, materiaPrima: "Harina de maíz", stock: 150, proveedorId: 1 },
+    { id: 2, materiaPrima: "Aceite vegetal", stock: 75, proveedorId: 2 }
+  ];
 
-  <div class="container">
-    <h1>Gestión de Inventario</h1>
-    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Ítem</button>
-  </div>
+  let editando = null;
 
-  <table id="tabla-inventario">
-    <thead>
+  function mostrarFormulario() {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("titulo-formulario").innerText = editando ? "Editar Materia Prima" : "Agregar Materia Prima";
+  }
+
+  function cerrarFormulario() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("form-inventario").reset();
+    document.getElementById("mensaje-error").style.display = "none";
+    editando = null;
+  }
+
+  function guardarInventario() {
+    const materiaPrima = document.getElementById("materiaPrima").value.trim();
+    const stock = parseInt(document.getElementById("stock").value);
+    const proveedorId = parseInt(document.getElementById("proveedorId").value);
+
+    if (!materiaPrima || isNaN(stock) || isNaN(proveedorId)) {
+      mostrarMensaje("Todos los campos son obligatorios.");
+      return;
+    }
+
+    if (editando) {
+      editando.materiaPrima = materiaPrima;
+      editando.stock = stock;
+      editando.proveedorId = proveedorId;
+    } else {
+      inventario.push({
+        id: inventario.length ? inventario[inventario.length - 1].id + 1 : 1,
+        materiaPrima, stock, proveedorId
+      });
+    }
+
+    actualizarTabla();
+    cerrarFormulario();
+  }
+
+  function editarInventario(id) {
+    editando = inventario.find(item => item.id === id);
+    document.getElementById("materiaPrima").value = editando.materiaPrima;
+    document.getElementById("stock").value = editando.stock;
+    document.getElementById("proveedorId").value = editando.proveedorId;
+    mostrarFormulario();
+  }
+
+  function eliminarInventario(id) {
+    if (confirm("¿Deseas eliminar este registro del inventario?")) {
+      inventario = inventario.filter(item => item.id !== id);
+      actualizarTabla();
+    }
+  }
+
+  function actualizarTabla() {
+    const tbody = document.querySelector("#tabla-inventario tbody");
+    tbody.innerHTML = inventario.map(item => `
       <tr>
-        <th>ID</th>
-        <th>Materia Prima</th>
-        <th>Stock</th>
-        <th>Proveedor ID</th>
-        <th>Acciones</th>
+        <td>${item.materiaPrima}</td>
+        <td>${item.stock}</td>
+        <td>${item.proveedorId}</td>
+        <td>
+          <button class="btn-editar" onclick="editarInventario(${item.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarInventario(${item.id})">Eliminar</button>
+        </td>
       </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    `).join("");
+  }
 
-  <div id="paginacion"></div>
+  function mostrarMensaje(msg) {
+    const div = document.getElementById("mensaje-error");
+    div.textContent = msg;
+    div.style.display = "block";
+  }
 
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <h2>Registrar o editar ítem de inventario</h2>
-      <form id="form-inventario">
-        <label for="materia_prima">Materia Prima:</label>
-        <input type="text" id="materia_prima" name="materia_prima" required>
-        <label for="stock">Stock:</label>
-        <input type="number" id="stock" name="stock" required>
-        <label for="proveedor_id">Proveedor ID:</label>
-        <input type="number" id="proveedor_id" name="proveedor_id" required>
-        <button type="button" onclick="guardarInventario()">Guardar</button>
-        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
-      </form>
-      <div id="mensaje-error" style="color: red; display: none;"></div>
-    </div>
-  </div>
+  actualizarTabla();
+</script>
+
 </body>
 </html>

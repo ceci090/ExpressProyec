@@ -3,272 +3,428 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestión de Ventas</title>
+  <title>Gestión de Ventas (Estático)</title>
   <link rel="stylesheet" href="/ventas.css" />
-  <script>
-    const API_URL = "https://palegreen-starling-110684.hostingersite.com/ventas.php";
-    let ventaEditando = null;
-    let ventas = [];
-    let paginaActual = 1;
-    const ventasPorPagina = 5;
-
-    async function cargarVentas() {
-      try {
-        const respuesta = await fetch(API_URL);
-        ventas = await respuesta.json();
-        const ventasMostrar = ventas.slice((paginaActual - 1) * ventasPorPagina, paginaActual * ventasPorPagina);
-
-        const tabla = document.getElementById("tabla-ventas").getElementsByTagName('tbody')[0];
-        tabla.innerHTML = ventasMostrar.map(v => `
-          <tr>
-            <td>${v.id}</td>
-            <td>${v.usuario_id}</td>
-            <td>${v.cliente_id}</td>
-            <td>${v.fecha}</td>
-            <td>${v.total}</td>
-            <td>
-              <button class="edit-btn" onclick="editarVenta(${v.id}, '${v.usuario_id}', '${v.cliente_id}', '${v.fecha}', '${v.total}')">Editar</button>
-              <button class="btn-eliminar" onclick="eliminarVenta(${v.id})">Eliminar</button>
-            </td>
-          </tr>
-        `).join("");
-
-        actualizarPaginacion();
-      } catch (error) {
-        console.error("Error al cargar las ventas:", error);
-        mostrarMensaje("Hubo un problema al cargar las ventas.");
-      }
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
     }
-
-    async function eliminarVenta(id) {
-      if (confirm("¿Estás seguro de que quieres eliminar esta venta?")) {
-        try {
-          const response = await fetch(`${API_URL}?id=${id}`, {
-            method: 'DELETE',
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert("Venta eliminada correctamente");
-            cargarVentas();
-          } else {
-            mostrarMensaje("Error al eliminar la venta.");
-          }
-        } catch (error) {
-          console.error("Error al eliminar la venta:", error);
-          mostrarMensaje("Hubo un problema al eliminar la venta.");
-        }
-      }
+    
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
     }
-
-    function actualizarPaginacion() {
-      const totalPaginas = Math.ceil(ventas.length / ventasPorPagina);
-      const paginacion = document.getElementById("paginacion");
-      paginacion.innerHTML = `
-        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-        <span>Página ${paginaActual} de ${totalPaginas}</span>
-        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
-      `;
+    
+    nav ul li:hover > ul {
+      display: block;
     }
-
-    function cambiarPagina(nuevaPagina) {
-      const totalPaginas = Math.ceil(ventas.length / ventasPorPagina);
-      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-        paginaActual = nuevaPagina;
-        cargarVentas();
-      }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
     }
-
-    function mostrarFormulario() {
-      document.getElementById("modal").style.display = "block";
+    
+    nav ul li {
+      float: left;
+      position: relative;
     }
-
-    function cerrarFormulario() {
-      document.getElementById("modal").style.display = "none";
-      document.getElementById("form-venta").reset();
-      ventaEditando = null;
-      limpiarMensajes();
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
     }
-
-    function mostrarMensaje(mensaje) {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.style.display = "block";
+    
+    nav ul li a:hover {
+      background: #555;
     }
-
-    function limpiarMensajes() {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = "";
-      mensajeDiv.style.display = "none";
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
     }
-
-    async function guardarVenta() {
-      limpiarMensajes();
-
-      const usuario_id = document.getElementById("usuario_id").value;
-      const cliente_id = document.getElementById("cliente_id").value;
-      const fecha = document.getElementById("fecha").value;
-      const total = document.getElementById("total").value;
-
-      if (!usuario_id || !cliente_id || !fecha || !total) {
-        mostrarMensaje("Todos los campos son obligatorios.");
-        return;
-      }
-
-      const ventaData = { usuario_id, cliente_id, fecha, total };
-
-      try {
-        let response;
-        if (ventaEditando) {
-          ventaData.id = ventaEditando.id;
-          response = await fetch(API_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(ventaData)
-          });
-        } else {
-          response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(ventaData)
-          });
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          alert(ventaEditando ? "Venta actualizada correctamente" : "Venta registrada correctamente");
-          cargarVentas();
-          cerrarFormulario();
-        } else {
-          mostrarMensaje(ventaEditando ? "Error al actualizar la venta" : "Error al registrar la venta");
-        }
-      } catch (error) {
-        console.error("Error al guardar la venta:", error);
-        mostrarMensaje("Hubo un problema al guardar la venta.");
-      }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
     }
-
-    function editarVenta(id, usuario_id, cliente_id, fecha, total) {
-      ventaEditando = { id, usuario_id, cliente_id, fecha, total };
-      document.getElementById("usuario_id").value = usuario_id;
-      document.getElementById("cliente_id").value = cliente_id;
-      document.getElementById("fecha").value = fecha;
-      document.getElementById("total").value = total;
-      mostrarFormulario();
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
     }
-
-    document.addEventListener("DOMContentLoaded", cargarVentas);
-  </script>
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
 </head>
 <body>
-  <header>
+</head>
+<body>
+</head>
+<body>
     <nav>
-      <ul>
-        <li><a href="menu.html">Inicio</a></li>
-  
-        <li><a href="#">Administración</a>
-          <ul>
-            <li><a href="#">Gestión Personal</a>
-              <ul>
-                <li><a href="empleados.html">Empleados</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li> 
-              </ul>
-            </li>
-            <li><a href="#">Gestión Financiera</a>
-              <ul>
-                <li><a href="ventas.html">Ventas</a></li>
-                <li><a href="gastos.html">Gastos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Operaciones</a>
-          <ul>
-            <li><a href="#">Gestión de Producción</a>
-              <ul>
-                <li><a href="produccion.html">Producción</a></li>
-                <li><a href="maquina.html">Máquina</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Gestión de Abastecimientos</a>
-              <ul>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="inventario.html">Inventario</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Comercialización</a>
-          <ul>
-            <li><a href="#">Relaciones con Clientes</a>
-              <ul>
-                <li><a href="clientes.html">Clientes</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logística de Pedidos</a>
-              <ul>
-                <li><a href="pedidos.html">Pedidos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-            <!-- Agregar el enlace para cerrar sesión al final del menú -->
-<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-</ul>
-</nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    <script>
+      // Versión optimizada para incluir en todos los HTMLs
+      function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
+            
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
+    </script>
+   <!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
+
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
+    }
+  }
+
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+  <h1>Gestión de Ventas</h1>
+<button class="btn-agregar" onclick="mostrarFormulario()">Registrar Venta</button>
+
+<table id="tabla-ventas">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Usuario ID</th>
+      <th>Cliente ID</th>
+      <th>Fecha</th>
+      <th>Total</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+  </tbody>
+</table>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="titulo-formulario">Registrar Venta</h3>
+    <form id="form-venta">
+      <label>Usuario ID:</label>
+      <input type="number" id="usuario_id" required><br><br>
+      <label>Cliente ID:</label>
+      <input type="number" id="cliente_id" required><br><br>
+      <label>Fecha:</label>
+      <input type="date" id="fecha" required><br><br>
+      <label>Total:</label>
+      <input type="number" step="0.01" id="total" required><br><br>
+      <button type="button" onclick="guardarVenta()">Guardar</button>
+      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+    </form>
+    <div id="mensaje-error" style="color:red; display:none;"></div>
+  </div>
+</div>
 
 <script>
-function handleLogout() {
-// Redirige al usuario a la página de inicio de sesión o página principal
-window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-}
-</script>
-      </ul>
-      
-    </nav>
-</header>
+  // Ejemplos pre-cargados
+  let ventas = [
+    { id: 1, usuario_id: 101, cliente_id: 501, fecha: '2025-04-01', total: 150.75 },
+    { id: 2, usuario_id: 102, cliente_id: 502, fecha: '2025-04-05', total: 230.00 },
+  ];
 
+  let ventaEditando = null;
 
-  <div class="container">
-    <h1>Gestión de Ventas</h1>
-    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Venta</button>
-  </div>
+  function mostrarFormulario() {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("titulo-formulario").innerText = ventaEditando ? "Editar Venta" : "Registrar Venta";
+  }
 
-  <table id="tabla-ventas">
-    <thead>
+  function cerrarFormulario() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("form-venta").reset();
+    document.getElementById("mensaje-error").style.display = "none";
+    ventaEditando = null;
+  }
+
+  function guardarVenta() {
+    const usuario_id = document.getElementById("usuario_id").value;
+    const cliente_id = document.getElementById("cliente_id").value;
+    const fecha = document.getElementById("fecha").value;
+    const total = document.getElementById("total").value;
+
+    if (!usuario_id || !cliente_id || !fecha || !total) {
+      mostrarMensaje("Todos los campos son obligatorios.");
+      return;
+    }
+
+    if (ventaEditando) {
+      ventaEditando.usuario_id = usuario_id;
+      ventaEditando.cliente_id = cliente_id;
+      ventaEditando.fecha = fecha;
+      ventaEditando.total = total;
+    } else {
+      const nuevaVenta = {
+        id: ventas.length ? ventas[ventas.length - 1].id + 1 : 1,
+        usuario_id, cliente_id, fecha, total
+      };
+      ventas.push(nuevaVenta);
+    }
+
+    actualizarTabla();
+    cerrarFormulario();
+  }
+
+  function editarVenta(id) {
+    ventaEditando = ventas.find(v => v.id === id);
+    document.getElementById("usuario_id").value = ventaEditando.usuario_id;
+    document.getElementById("cliente_id").value = ventaEditando.cliente_id;
+    document.getElementById("fecha").value = ventaEditando.fecha;
+    document.getElementById("total").value = ventaEditando.total;
+    mostrarFormulario();
+  }
+
+  function eliminarVenta(id) {
+    if (confirm("¿Seguro que deseas eliminar esta venta?")) {
+      ventas = ventas.filter(v => v.id !== id);
+      actualizarTabla();
+    }
+  }
+
+  function actualizarTabla() {
+    const tbody = document.querySelector("#tabla-ventas tbody");
+    tbody.innerHTML = ventas.map(v => `
       <tr>
-        <th>ID</th>
-        <th>Usuario ID</th>
-        <th>Cliente ID</th>
-        <th>Fecha</th>
-        <th>Total</th>
-        <th>Acciones</th>
+        <td>${v.id}</td>
+        <td>${v.usuario_id}</td>
+        <td>${v.cliente_id}</td>
+        <td>${v.fecha}</td>
+        <td>${parseFloat(v.total).toFixed(2)}</td>
+        <td>
+          <button class="btn-editar" onclick="editarVenta(${v.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarVenta(${v.id})">Eliminar</button>
+        </td>
       </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    `).join("");
+  }
 
-  <div id="paginacion"></div>
+  function mostrarMensaje(mensaje) {
+    const div = document.getElementById("mensaje-error");
+    div.textContent = mensaje;
+    div.style.display = "block";
+  }
 
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <h2>Registrar o editar venta</h2>
-      <form id="form-venta">
-        <label for="usuario_id">Usuario ID:</label>
-        <input type="number" id="usuario_id" name="usuario_id" required>
-        <label for="cliente_id">Cliente ID:</label>
-        <input type="number" id="cliente_id" name="cliente_id" required>
-        <label for="fecha">Fecha:</label>
-        <input type="date" id="fecha" name="fecha" required>
-        <label for="total">Total:</label>
-        <input type="number" step="0.01" id="total" name="total" required>
-        <button type="button" onclick="guardarVenta()">Guardar</button>
-        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
-      </form>
-      <div id="mensaje-error" style="color: red; display: none;"></div>
-    </div>
-  </div>
+  // Mostrar tabla al cargar
+  actualizarTabla();
+</script>
+
 </body>
 </html>

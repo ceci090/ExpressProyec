@@ -1,280 +1,433 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gestión de Proveedores</title>
-  <link rel="stylesheet" href="/ventas.css" />
-  <script>
-    const API_URL = "https://palegreen-starling-110684.hostingersite.com/proveedores.php";
-    let proveedorEditando = null;
-    let proveedores = [];
-    let paginaActual = 1;
-    const proveedoresPorPagina = 5;
-
-    async function cargarProveedores() {
-      try {
-        const respuesta = await fetch(API_URL);
-        proveedores = await respuesta.json();
-        const mostrar = proveedores.slice((paginaActual - 1) * proveedoresPorPagina, paginaActual * proveedoresPorPagina);
-
-        const tabla = document.getElementById("tabla-proveedores").getElementsByTagName('tbody')[0];
-        tabla.innerHTML = mostrar.map(p => `
-          <tr>
-            <td>${p.id}</td>
-            <td>${p.nombre}</td>
-            <td>${p.contacto}</td>
-            <td>${p.telefono}</td>
-            <td>${p.correo}</td>
-            <td>${p.direccion}</td>
-            <td>
-              <button class="edit-btn" onclick="editarProveedor(${p.id}, '${p.nombre}', '${p.contacto}', '${p.telefono}', '${p.correo}', '${p.direccion}')">Editar</button>
-              <button class="btn-eliminar" onclick="eliminarProveedor(${p.id})">Eliminar</button>
-            </td>
-          </tr>
-        `).join("");
-
-        actualizarPaginacion();
-      } catch (error) {
-        console.error("Error al cargar los proveedores:", error);
-        mostrarMensaje("Hubo un problema al cargar los proveedores.");
-      }
+  <link rel="stylesheet" href="/proveedores.css" />
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
     }
-
-    async function eliminarProveedor(id) {
-      if (confirm("¿Estás seguro de que quieres eliminar este proveedor?")) {
-        try {
-          const response = await fetch(`${API_URL}?id=${id}`, {
-            method: 'DELETE',
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert("Proveedor eliminado correctamente");
-            cargarProveedores();
-          } else {
-            mostrarMensaje("Error al eliminar el proveedor.");
-          }
-        } catch (error) {
-          console.error("Error al eliminar el proveedor:", error);
-          mostrarMensaje("Hubo un problema al eliminar el proveedor.");
-        }
-      }
+    
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
     }
-
-    function actualizarPaginacion() {
-      const totalPaginas = Math.ceil(proveedores.length / proveedoresPorPagina);
-      const paginacion = document.getElementById("paginacion");
-      paginacion.innerHTML = `
-        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-        <span>Página ${paginaActual} de ${totalPaginas}</span>
-        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
-      `;
+    
+    nav ul li:hover > ul {
+      display: block;
     }
-
-    function cambiarPagina(nuevaPagina) {
-      const totalPaginas = Math.ceil(proveedores.length / proveedoresPorPagina);
-      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-        paginaActual = nuevaPagina;
-        cargarProveedores();
-      }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
     }
-
-    function mostrarFormulario() {
-      document.getElementById("modal").style.display = "block";
+    
+    nav ul li {
+      float: left;
+      position: relative;
     }
-
-    function cerrarFormulario() {
-      document.getElementById("modal").style.display = "none";
-      document.getElementById("form-proveedor").reset();
-      proveedorEditando = null;
-      limpiarMensajes();
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
     }
-
-    function mostrarMensaje(mensaje) {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.style.display = "block";
+    
+    nav ul li a:hover {
+      background: #555;
     }
-
-    function limpiarMensajes() {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = "";
-      mensajeDiv.style.display = "none";
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
     }
-
-    async function guardarProveedor() {
-      limpiarMensajes();
-
-      const nombre = document.getElementById("nombre").value;
-      const contacto = document.getElementById("contacto").value;
-      const telefono = document.getElementById("telefono").value;
-      const correo = document.getElementById("correo").value;
-      const direccion = document.getElementById("direccion").value;
-
-      if (!nombre || !contacto || !telefono || !correo || !direccion) {
-        mostrarMensaje("Todos los campos son obligatorios.");
-        return;
-      }
-
-      const proveedorData = { nombre, contacto, telefono, correo, direccion };
-
-      try {
-        let response;
-        if (proveedorEditando) {
-          proveedorData.id = proveedorEditando.id;
-          response = await fetch(API_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(proveedorData)
-          });
-        } else {
-          response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(proveedorData)
-          });
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          alert(proveedorEditando ? "Proveedor actualizado correctamente" : "Proveedor registrado correctamente");
-          cargarProveedores();
-          cerrarFormulario();
-        } else {
-          mostrarMensaje(proveedorEditando ? "Error al actualizar el proveedor" : "Error al registrar el proveedor");
-        }
-      } catch (error) {
-        console.error("Error al guardar el proveedor:", error);
-        mostrarMensaje("Hubo un problema al guardar el proveedor.");
-      }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
     }
-
-    function editarProveedor(id, nombre, contacto, telefono, correo, direccion) {
-      proveedorEditando = { id, nombre, contacto, telefono, correo, direccion };
-      document.getElementById("nombre").value = nombre;
-      document.getElementById("contacto").value = contacto;
-      document.getElementById("telefono").value = telefono;
-      document.getElementById("correo").value = correo;
-      document.getElementById("direccion").value = direccion;
-      mostrarFormulario();
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
     }
-
-    document.addEventListener("DOMContentLoaded", cargarProveedores);
-  </script>
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
 </head>
 <body>
-  <header>
+</head>
+<body>
+</head>
+<body>
     <nav>
-      <ul>
-        <li><a href="menu.html">Inicio</a></li>
-  
-        <li><a href="#">Administración</a>
-          <ul>
-            <li><a href="#">Gestión Personal</a>
-              <ul>
-                <li><a href="empleados.html">Empleados</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li> 
-              </ul>
-            </li>
-            <li><a href="#">Gestión Financiera</a>
-              <ul>
-                <li><a href="ventas.html">Ventas</a></li>
-                <li><a href="gastos.html">Gastos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Operaciones</a>
-          <ul>
-            <li><a href="#">Gestión de Producción</a>
-              <ul>
-                <li><a href="produccion.html">Producción</a></li>
-                <li><a href="maquina.html">Máquina</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Gestión de Abastecimientos</a>
-              <ul>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="inventario.html">Inventario</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Comercialización</a>
-          <ul>
-            <li><a href="#">Relaciones con Clientes</a>
-              <ul>
-                <li><a href="clientes.html">Clientes</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logística de Pedidos</a>
-              <ul>
-                <li><a href="pedidos.html">Pedidos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-            <!-- Agregar el enlace para cerrar sesión al final del menú -->
-<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-</ul>
-</nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <script>
+      // Versión optimizada para incluir en todos los HTMLs
+      function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
+            
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
+    </script>
+    <!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
+
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
+    }
+  }
+
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+<body>
+
+<h1>Gestión de Proveedores</h1>
+<button class="btn-agregar" onclick="mostrarFormulario()">Agregar Proveedor</button>
+
+<table id="tabla-proveedores">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Contacto</th>
+      <th>Teléfono</th>
+      <th>Correo</th>
+      <th>Dirección</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="titulo-formulario">Agregar Proveedor</h3>
+    <form id="form-proveedor">
+      <label>Nombre:</label><br>
+      <input type="text" id="nombre" required><br><br>
+      <label>Contacto:</label><br>
+      <input type="text" id="contacto" required><br><br>
+      <label>Teléfono:</label><br>
+      <input type="text" id="telefono" required><br><br>
+      <label>Correo:</label><br>
+      <input type="email" id="correo" required><br><br>
+      <label>Dirección:</label><br>
+      <input type="text" id="direccion" required><br><br>
+      <button type="button" onclick="guardarProveedor()">Guardar</button>
+      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+    </form>
+    <div id="mensaje-error" style="color:red; display:none;"></div>
+  </div>
+</div>
 
 <script>
-function handleLogout() {
-// Redirige al usuario a la página de inicio de sesión o página principal
-window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-}
-</script>
-      </ul>
-      
-    </nav>
-</header>
+  let proveedores = [
+    { id: 1, nombre: "Harinas del Norte", contacto: "Luis Gómez", telefono: "555-1234", correo: "harinas@norte.com", direccion: "Calle 1, CDMX" },
+    { id: 2, nombre: "Empaques Rápidos", contacto: "Marta Ruiz", telefono: "555-9876", correo: "contacto@empaques.com", direccion: "Av. Central 45" }
+  ];
 
+  let editando = null;
 
-  <div class="container">
-    <h1>Gestión de Proveedores</h1>
-    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Proveedor</button>
-  </div>
+  function mostrarFormulario() {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("titulo-formulario").innerText = editando ? "Editar Proveedor" : "Agregar Proveedor";
+  }
 
-  <table id="tabla-proveedores">
-    <thead>
+  function cerrarFormulario() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("form-proveedor").reset();
+    document.getElementById("mensaje-error").style.display = "none";
+    editando = null;
+  }
+
+  function guardarProveedor() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const contacto = document.getElementById("contacto").value.trim();
+    const telefono = document.getElementById("telefono").value.trim();
+    const correo = document.getElementById("correo").value.trim();
+    const direccion = document.getElementById("direccion").value.trim();
+
+    if (!nombre || !contacto || !telefono || !correo || !direccion) {
+      mostrarMensaje("Todos los campos son obligatorios.");
+      return;
+    }
+
+    if (editando) {
+      editando.nombre = nombre;
+      editando.contacto = contacto;
+      editando.telefono = telefono;
+      editando.correo = correo;
+      editando.direccion = direccion;
+    } else {
+      proveedores.push({
+        id: proveedores.length ? proveedores[proveedores.length - 1].id + 1 : 1,
+        nombre, contacto, telefono, correo, direccion
+      });
+    }
+
+    actualizarTabla();
+    cerrarFormulario();
+  }
+
+  function editarProveedor(id) {
+    editando = proveedores.find(p => p.id === id);
+    document.getElementById("nombre").value = editando.nombre;
+    document.getElementById("contacto").value = editando.contacto;
+    document.getElementById("telefono").value = editando.telefono;
+    document.getElementById("correo").value = editando.correo;
+    document.getElementById("direccion").value = editando.direccion;
+    mostrarFormulario();
+  }
+
+  function eliminarProveedor(id) {
+    if (confirm("¿Deseas eliminar este proveedor?")) {
+      proveedores = proveedores.filter(p => p.id !== id);
+      actualizarTabla();
+    }
+  }
+
+  function actualizarTabla() {
+    const tbody = document.querySelector("#tabla-proveedores tbody");
+    tbody.innerHTML = proveedores.map(p => `
       <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Contacto</th>
-        <th>Teléfono</th>
-        <th>Correo</th>
-        <th>Dirección</th>
-        <th>Acciones</th>
+        <td>${p.nombre}</td>
+        <td>${p.contacto}</td>
+        <td>${p.telefono}</td>
+        <td>${p.correo}</td>
+        <td>${p.direccion}</td>
+        <td>
+          <button class="btn-editar" onclick="editarProveedor(${p.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarProveedor(${p.id})">Eliminar</button>
+        </td>
       </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    `).join("");
+  }
 
-  <div id="paginacion"></div>
+  function mostrarMensaje(msg) {
+    const div = document.getElementById("mensaje-error");
+    div.textContent = msg;
+    div.style.display = "block";
+  }
 
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <h2>Registrar o editar proveedor</h2>
-      <form id="form-proveedor">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" required>
-        <label for="contacto">Contacto:</label>
-        <input type="text" id="contacto" name="contacto" required>
-        <label for="telefono">Teléfono:</label>
-        <input type="tel" id="telefono" name="telefono" required>
-        <label for="correo">Correo:</label>
-        <input type="email" id="correo" name="correo" required>
-        <label for="direccion">Dirección:</label>
-        <input type="text" id="direccion" name="direccion" required>
-        <button type="button" onclick="guardarProveedor()">Guardar</button>
-        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
-      </form>
-      <div id="mensaje-error" style="color: red; display: none;"></div>
-    </div>
-  </div>
+  actualizarTabla();
+</script>
+
 </body>
 </html>

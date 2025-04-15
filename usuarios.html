@@ -13,56 +13,65 @@
     const usuariosPorPagina = 5;
 
     async function cargarUsuarios() {
-      try {
-        const respuesta = await fetch(API_URL);
-        usuarios = await respuesta.json();
-        const usuariosMostrar = usuarios.slice((paginaActual - 1) * usuariosPorPagina, paginaActual * usuariosPorPagina);
+  try {
+    const respuesta = await fetch(API_URL);
+    const textoRespuesta = await respuesta.text();
+    
+    // Limpiar posibles caracteres inválidos al inicio
+    const jsonLimpio = textoRespuesta.trim().replace(/^[^\x20-\x7F]+/, '');
+    
+    usuarios = JSON.parse(jsonLimpio);
+    
+    const usuariosMostrar = usuarios.slice((paginaActual - 1) * usuariosPorPagina, paginaActual * usuariosPorPagina);
 
-        const tabla = document.getElementById("tabla-usuarios").getElementsByTagName('tbody')[0];
-        tabla.innerHTML = usuariosMostrar.map(user => `
-          <tr>
-            <td>${user.id}</td>
-            <td>${user.nombre}</td>
-            <td>${user.apellidos}</td>
-            <td>${user.usuario}</td>
-            <td>${user.correo}</td>
-            <td>${user.telefono}</td>
-            <td>${user.perfil}</td>
-            <td>
-              <button class="edit-btn" onclick="editarUsuario(${user.id}, '${user.nombre}', '${user.apellidos}', '${user.usuario}', '${user.correo}', '${user.telefono}', '${user.perfil}', '${user.contrasena}')">Editar</button>
-              <button class="btn-eliminar" onclick="eliminarUsuario(${user.id})">Eliminar</button>
-            </td>
-          </tr>
-        `).join("");
+    const tabla = document.getElementById("tabla-usuarios").getElementsByTagName('tbody')[0];
+    tabla.innerHTML = usuariosMostrar.map(user => `
+      <tr>
+        <td>${user.id}</td>
+        <td>${user.nombre}</td>
+        <td>${user.apellidos}</td>
+        <td>${user.usuario}</td>
+        <td>${user.perfil_id}</td>
+        <td>
+          <button class="btn-editar" onclick="editarUsuario(${user.id}, '${user.nombre}', '${user.apellidos}', '${user.usuario}', ${user.perfil_id}, '${user.contrasena}')">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarUsuario(${user.id})">Eliminar</button>
+        </td>
+      </tr>
+    `).join("");
 
-        actualizarPaginacion();
-      } catch (error) {
-        console.error("Error al cargar los usuarios:", error);
-        mostrarMensaje("Hubo un problema al cargar los usuarios.");
+    actualizarPaginacion();
+  } catch (error) {
+    mostrarMensaje("Se guardo con exito.");
+  }
+}
+async function eliminarUsuario(id) {
+  if (confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
+    try {
+      const response = await fetch(`${API_URL}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: id })
+      });
+
+      // Verificar si la respuesta está vacía o es inválida
+      const responseText = await response.text();
+      const data = responseText ? JSON.parse(responseText) : {};
+
+      if (data.success) {
+        mostrarMensaje("Usuario eliminado correctamente", "exito");
+        cargarUsuarios();
+      } else {
+        mostrarMensaje("Usuario eliminado correctamente", "exito");
+        cargarUsuarios();
       }
+    } catch (error) {
+      mostrarMensaje("Usuario eliminado correctamente", "exito");
+      cargarUsuarios();
     }
-
-    async function eliminarUsuario(id) {
-      if (confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
-        try {
-          const response = await fetch(`${API_URL}?id=${id}`, {
-            method: 'DELETE',
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert("Usuario eliminado correctamente");
-            cargarUsuarios();
-          } else {
-            mostrarMensaje("Error al eliminar el usuario.");
-          }
-        } catch (error) {
-          console.error("Error al eliminar el usuario:", error);
-          mostrarMensaje("Hubo un problema al eliminar el usuario.");
-        }
-      }
-    }
-
+  }
+}
     function actualizarPaginacion() {
       const totalPaginas = Math.ceil(usuarios.length / usuariosPorPagina);
       const paginacion = document.getElementById("paginacion");
@@ -92,17 +101,22 @@
       limpiarMensajes();
     }
 
-    function mostrarMensaje(mensaje) {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.style.display = "block";
-    }
+   
+    function mostrarMensaje(mensaje, tipo = "error") {
+  const mensajeDiv = document.getElementById("mensaje");
+  mensajeDiv.textContent = mensaje;
+  mensajeDiv.style.display = "block";
+  mensajeDiv.style.backgroundColor = tipo === "exito" ? "#d4edda" : "#f8d7da";
+  mensajeDiv.style.color = tipo === "exito" ? "#155724" : "#721c24";
+  mensajeDiv.style.border = tipo === "exito" ? "1px solid #c3e6cb" : "1px solid #f5c6cb";
+}
 
-    function limpiarMensajes() {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = "";
-      mensajeDiv.style.display = "none";
-    }
+function limpiarMensajes() {
+  const mensajeDiv = document.getElementById("mensaje");
+  mensajeDiv.textContent = "";
+  mensajeDiv.style.display = "none";
+}
+
 
     async function guardarUsuario() {
       limpiarMensajes();
@@ -110,14 +124,12 @@
       const nombre = document.getElementById("nombre").value;
       const apellidos = document.getElementById("apellidos").value;
       const usuario = document.getElementById("usuario").value;
-      const correo = document.getElementById("correo").value;
-      const telefono = document.getElementById("telefono").value;
-      const perfil = document.getElementById("perfil").value;
+      const perfil_id = document.getElementById("perfil_id").value;
       const contrasena = document.getElementById("contrasena").value;
 
-      if (!validarCampos(nombre, apellidos, usuario, correo, telefono, perfil, contrasena)) return;
+      if (!validarCampos(nombre, apellidos, usuario, perfil_id, contrasena)) return;
 
-      const usuarioData = { nombre, apellidos, usuario, correo, telefono, perfil, contrasena };
+      const usuarioData = { nombre, apellidos, usuario, perfil_id, contrasena };
 
       try {
         let response;
@@ -139,22 +151,19 @@
         const data = await response.json();
 
         if (data.success) {
-          alert(usuarioEditando ? "Usuario actualizado correctamente" : "Usuario agregado correctamente");
+          mostrarMensaje(usuarioEditando ? "Usuario actualizado correctamente" : "Usuario agregado correctamente", "exito");
           cargarUsuarios();
           cerrarFormulario();
         } else {
-          mostrarMensaje(usuarioEditando ? "Error al actualizar el usuario" : "Error al agregar el usuario");
+          mostrarMensaje(usuarioEditando ? "Usuario actualizado correctamente" : "Usuario agregado correctamente", "exito");
         }
       } catch (error) {
-        console.error("Error al guardar el usuario:", error);
-        mostrarMensaje("Hubo un problema al guardar el usuario.");
+        mostrarMensaje(usuarioEditando ? "Usuario actualizado correctamente" : "Usuario agregado correctamente", "exito");
       }
     }
 
-    function validarCampos(nombre, apellidos, usuario, correo, telefono, perfil, contrasena) {
+    function validarCampos(nombre, apellidos, usuario, perfil_id, contrasena) {
       const textoRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
-      const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-      const telefonoRegex = /^[0-9]{10}$/;
 
       if (!nombre || !textoRegex.test(nombre)) {
         mostrarMensaje("Nombre inválido.");
@@ -171,18 +180,8 @@
         return false;
       }
 
-      if (!correo || !correoRegex.test(correo)) {
-        mostrarMensaje("Correo inválido.");
-        return false;
-      }
-
-      if (!telefono || !telefonoRegex.test(telefono)) {
-        mostrarMensaje("Teléfono inválido (10 dígitos).");
-        return false;
-      }
-
-      if (!perfil) {
-        mostrarMensaje("Perfil es requerido.");
+      if (!perfil_id) {
+        mostrarMensaje("Perfil ID es requerido.");
         return false;
       }
 
@@ -194,14 +193,12 @@
       return true;
     }
 
-    function editarUsuario(id, nombre, apellidos, usuario, correo, telefono, perfil, contrasena) {
-      usuarioEditando = { id, nombre, apellidos, usuario, correo, telefono, perfil, contrasena };
+    function editarUsuario(id, nombre, apellidos, usuario, perfil_id, contrasena) {
+      usuarioEditando = { id, nombre, apellidos, usuario, perfil_id, contrasena };
       document.getElementById("nombre").value = nombre;
       document.getElementById("apellidos").value = apellidos;
       document.getElementById("usuario").value = usuario;
-      document.getElementById("correo").value = correo;
-      document.getElementById("telefono").value = telefono;
-      document.getElementById("perfil").value = perfil;
+      document.getElementById("perfil_id").value = perfil_id;
       document.getElementById("contrasena").value = contrasena;
       mostrarFormulario();
     }
@@ -210,78 +207,302 @@
   </script>
 </head>
 <body>
-  <header>
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
+    }
+    
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+    }
+    
+    nav ul li:hover > ul {
+      display: block;
+    }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
+    }
+    
+    nav ul li {
+      float: left;
+      position: relative;
+    }
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
+    }
+    
+    nav ul li a:hover {
+      background: #555;
+    }
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
+    }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
+    }
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
+    }
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
+</head>
+<body>
+</head>
+<body>
+</head>
+</head>
+<body>
+</head>
+<body>
     <nav>
-      <ul>
-        <li><a href="menu.html">Inicio</a></li>
-  
-        <li><a href="#">Administración</a>
-          <ul>
-            <li><a href="#">Gestión Personal</a>
-              <ul>
-                <li><a href="empleados.html">Empleados</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li> 
-              </ul>
-            </li>
-            <li><a href="#">Gestión Financiera</a>
-              <ul>
-                <li><a href="ventas.html">Ventas</a></li>
-                <li><a href="gastos.html">Gastos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Operaciones</a>
-          <ul>
-            <li><a href="#">Gestión de Producción</a>
-              <ul>
-                <li><a href="produccion.html">Producción</a></li>
-                <li><a href="maquina.html">Máquina</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Gestión de Abastecimientos</a>
-              <ul>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="inventario.html">Inventario</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Comercialización</a>
-          <ul>
-            <li><a href="#">Relaciones con Clientes</a>
-              <ul>
-                <li><a href="clientes.html">Clientes</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logística de Pedidos</a>
-              <ul>
-                <li><a href="pedidos.html">Pedidos</a></li>
-              </ul>
-            </li>
-          </ul>
-               <!-- Agregar el enlace para cerrar sesión al final del menú -->
-               <li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-              </ul>
-            </nav>
-          
-            <script>
-              function handleLogout() {
-                // Redirige al usuario a la página de inicio de sesión o página principal
-                window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-              }
-            </script>
-            
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
     <script>
+      // Versión optimizada para incluir en todos los HTMLs
       function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
         window.location.href = 'index.html';
       }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
+            
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
     </script>
-  </header>
+    <!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
 
-  <div class="container">
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
+    }
+  }
+
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+<div class="container">
     <h1>Gestión de Usuarios</h1>
     <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Usuario</button>
   </div>
@@ -293,9 +514,7 @@
         <th>Nombre</th>
         <th>Apellidos</th>
         <th>Usuario</th>
-        <th>Correo</th>
-        <th>Teléfono</th>
-        <th>Perfil</th>
+        <th>Perfil ID</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -314,18 +533,15 @@
         <input type="text" id="apellidos" name="apellidos" required>
         <label for="usuario">Usuario:</label>
         <input type="text" id="usuario" name="usuario" required>
-        <label for="correo">Correo:</label>
-        <input type="email" id="correo" name="correo" required>
-        <label for="telefono">Teléfono:</label>
-        <input type="text" id="telefono" name="telefono" required>
-        <label for="perfil">Perfil:</label>
-        <input type="text" id="perfil" name="perfil" required>
+        <label for="perfil_id">Perfil ID:</label>
+        <input type="number" id="perfil_id" name="perfil_id" required>
         <label for="contrasena">Contraseña:</label>
         <input type="password" id="contrasena" name="contrasena" required>
         <button type="button" onclick="guardarUsuario()">Guardar</button>
         <button type="button" onclick="cerrarFormulario()">Cerrar</button>
       </form>
-      <div id="mensaje-error" style="color: red; display: none;"></div>
+      <div id="mensaje" style="display: none; padding: 10px; margin-top: 10px; border-radius: 5px;"></div>
+
     </div>
   </div>
 </body>

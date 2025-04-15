@@ -1,307 +1,476 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Empleados</title>
-    <link rel="stylesheet" href="/empleados.css">
-    <script>
-        const API_URL = "https://palegreen-starling-110684.hostingersite.com/api.php";
-        let empleadoEditando = null;
-        let empleados = [];
-        let paginaActual = 1;
-        const empleadosPorPagina = 5;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Empleados (Estático)</title>
+  <link rel="stylesheet" href="/empleados.css" />
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+    }
+    
+    nav ul li:hover > ul {
+      display: block;
+    }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
+    }
+    
+    nav ul li {
+      float: left;
+      position: relative;
+    }
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
+    }
+    
+    nav ul li a:hover {
+      background: #555;
+    }
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
+    }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
+    }
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
+    }
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    /* menu.css */
+.hidden {
+  display: none !important;
+}
 
-        // Función para cargar empleados
-        async function cargarEmpleados() {
-            try {
-                const respuesta = await fetch(API_URL);
-                empleados = await respuesta.json();
-                const empleadosMostrar = empleados.slice((paginaActual - 1) * empleadosPorPagina, paginaActual * empleadosPorPagina);
+.disabled-module {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
 
-                const tabla = document.getElementById("tabla-empleados").getElementsByTagName('tbody')[0];
-                tabla.innerHTML = empleadosMostrar.map(emp => `
-                    <tr>
-                        <td>${emp.id}</td>
-                        <td>${emp.nombre}</td>
-                        <td>${emp.puesto}</td>
-                        <td>${emp.correo}</td>
-                        <td>${emp.telefono}</td>
-                        <td>
-                            <button class="edit-btn" onclick="editarEmpleado(${emp.id}, '${emp.nombre}', '${emp.puesto}', '${emp.correo}', '${emp.telefono}')">Editar</button>
-                            <button class="btn-eliminar" onclick="eliminarEmpleado(${emp.id})">Eliminar</button>
-                        </td>
-                    </tr>
-                `).join("");
+/* Estilos del menú principal */
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: #333;
+  display: flex;
+}
 
-                actualizarPaginacion();
-            } catch (error) {
-                console.error("Error al cargar los empleados:", error);
-                mostrarMensaje("Hubo un problema al cargar los empleados.");
-            }
-        }
+nav ul li {
+  position: relative;
+}
 
-        // Función para eliminar un empleado
-        async function eliminarEmpleado(id) {
-            if (confirm("¿Estás seguro de que quieres eliminar este empleado?")) {
-                try {
-                    const response = await fetch(`${API_URL}?id=${id}`, {
-                        method: 'DELETE',
-                    });
+nav ul li a {
+  display: block;
+  padding: 10px 15px;
+  color: #fff;
+  text-decoration: none;
+}
 
-                    const data = await response.json();
-                    if (data.success) {
-                        alert("Empleado eliminado correctamente");
-                        cargarEmpleados(); // Recargar la lista de empleados después de la eliminación
-                    } else {
-                        mostrarMensaje("Error al eliminar el empleado.");
-                    }
-                } catch (error) {
-                    console.error("Error al eliminar el empleado:", error);
-                    mostrarMensaje("Hubo un problema al eliminar el empleado.");
-                }
-            }
-        }
-
-        // Actualización de la paginación
-        function actualizarPaginacion() {
-            const totalPaginas = Math.ceil(empleados.length / empleadosPorPagina);
-            const paginacion = document.getElementById("paginacion");
-            paginacion.innerHTML = `
-                <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-                <span>Página ${paginaActual} de ${totalPaginas}</span>
-                <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
-            `;
-        }
-
-        // Cambiar la página de empleados
-        function cambiarPagina(nuevaPagina) {
-            const totalPaginas = Math.ceil(empleados.length / empleadosPorPagina);
-            if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-                paginaActual = nuevaPagina;
-                cargarEmpleados();
-            }
-        }
-
-        function mostrarFormulario() {
-            document.getElementById("modal").style.display = "block";
-        }
-
-        function cerrarFormulario() {
-            document.getElementById("modal").style.display = "none";
-            document.getElementById("form-empleado").reset();
-            empleadoEditando = null;
-            limpiarMensajes();
-        }
-
-        // Mostrar mensaje de error
-        function mostrarMensaje(mensaje) {
-            const mensajeDiv = document.getElementById("mensaje-error");
-            mensajeDiv.textContent = mensaje;
-            mensajeDiv.style.display = "block";
-        }
-
-        // Limpiar los mensajes de error
-        function limpiarMensajes() {
-            const mensajeDiv = document.getElementById("mensaje-error");
-            mensajeDiv.textContent = "";
-            mensajeDiv.style.display = "none";
-        }
-
-        // Validación y guardado de empleado
-        async function guardarEmpleado() {
-            limpiarMensajes();
-
-            const nombre = document.getElementById("nombre").value;
-            const puesto = document.getElementById("puesto").value;
-            const correo = document.getElementById("correo").value;
-            const telefono = document.getElementById("telefono").value;
-
-            if (!validarCampos(nombre, puesto, correo, telefono)) return;
-
-            const empleadoData = { nombre, puesto, correo, telefono };
-
-            try {
-                let response;
-                if (empleadoEditando) {
-                    empleadoData.id = empleadoEditando.id;
-                    response = await fetch(API_URL, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(empleadoData)
-                    });
-                } else {
-                    response = await fetch(API_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(empleadoData)
-                    });
-                }
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert(empleadoEditando ? "Empleado actualizado correctamente" : "Empleado agregado correctamente");
-                    cargarEmpleados();
-                    cerrarFormulario();
-                } else {
-                    mostrarMensaje(empleadoEditando ? "Error al actualizar el empleado" : "Error al agregar el empleado");
-                }
-            } catch (error) {
-                console.error("Error al guardar el empleado:", error);
-                mostrarMensaje("Hubo un problema al guardar el empleado.");
-            }
-        }
-
-        function validarCampos(nombre, puesto, correo, telefono) {
-            const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
-            const puestoRegex = /^[a-zA-ZáéíóúÁÉÍÓÚÑñ\s]+$/;
-            const correoRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            const telefonoRegex = /^[0-9]{10}$/;
-
-            if (!nombre || !nombreRegex.test(nombre)) {
-                mostrarMensaje("Por favor ingresa un nombre válido (solo letras).");
-                return false;
-            }
-
-            if (!puesto || !puestoRegex.test(puesto)) {
-                mostrarMensaje("Por favor ingresa un puesto válido (solo letras).");
-                return false;
-            }
-
-            if (!correo || !correoRegex.test(correo)) {
-                mostrarMensaje("Por favor ingresa un correo electrónico válido.");
-                return false;
-            }
-
-            if (!telefono || !telefonoRegex.test(telefono)) {
-                mostrarMensaje("Por favor ingresa un número de teléfono válido (10 dígitos).");
-                return false;
-            }
-
-            return true;
-        }
-
-        function editarEmpleado(id, nombre, puesto, correo, telefono) {
-            empleadoEditando = { id, nombre, puesto, correo, telefono };
-            document.getElementById("nombre").value = nombre;
-            document.getElementById("puesto").value = puesto;
-            document.getElementById("correo").value = correo;
-            document.getElementById("telefono").value = telefono;
-            mostrarFormulario();
-        }
-
-        document.addEventListener("DOMContentLoaded", cargarEmpleados);
-    </script>
+nav ul li a:hover {
+  background: #555;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-              <li><a href="menu.html">Inicio</a></li>
-        
-              <li><a href="#">Administración</a>
-                <ul>
-                  <li><a href="#">Gestión Personal</a>
-                    <ul>
-                      <li><a href="empleados.html">Empleados</a></li>
-                      <li><a href="usuarios.html">Usuarios</a></li> 
-                    </ul>
-                  </li>
-                  <li><a href="#">Gestión Financiera</a>
-                    <ul>
-                      <li><a href="ventas.html">Ventas</a></li>
-                      <li><a href="gastos.html">Gastos</a></li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-        
-              <li><a href="#">Operaciones</a>
-                <ul>
-                  <li><a href="#">Gestión de Producción</a>
-                    <ul>
-                      <li><a href="produccion.html">Producción</a></li>
-                      <li><a href="maquina.html">Máquina</a></li>
-                    </ul>
-                  </li>
-                  <li><a href="#">Gestión de Abastecimientos</a>
-                    <ul>
-                      <li><a href="proveedores.html">Proveedores</a></li>
-                      <li><a href="inventario.html">Inventario</a></li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-        
-              <li><a href="#">Comercialización</a>
-                <ul>
-                  <li><a href="#">Relaciones con Clientes</a>
-                    <ul>
-                      <li><a href="clientes.html">Clientes</a></li>
-                    </ul>
-                  </li>
-                  <li><a href="#">Logística de Pedidos</a>
-                    <ul>
-                      <li><a href="pedidos.html">Pedidos</a></li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-                  <!-- Agregar el enlace para cerrar sesión al final del menú -->
-      <li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-    </ul>
-  </nav>
-
-  <script>
-    function handleLogout() {
-      // Redirige al usuario a la página de inicio de sesión o página principal
-      window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-    }
-  </script>
-            </ul>
+</head>
+<body>
+    <nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    <script>
+      // Versión optimizada para incluir en todos los HTMLs
+      function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
             
-          </nav>
-    </header>
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
+    </script>
+    <script>
+      // Función para obtener ID del módulo actual
+      function obtenerIdModuloActual() {
+        const path = window.location.pathname;
+        if (path.includes('empleados.html')) return '33';
+        if (path.includes('usuarios.html')) return '36';
+        if (path.includes('perfil.html')) return '54';
+        if (path.includes('ventas.html')) return '39';
+        if (path.includes('gastos.html')) return '42';
+        if (path.includes('produccion.html')) return '46';
+        if (path.includes('maquina.html')) return '47';
+        if (path.includes('proveedores.html')) return '48';
+        if (path.includes('inventario.html')) return '49';
+        return null;
+      }
+    
+      // Función para configurar visibilidad de botones
+      function configurarBotonesSegunPermisos() {
+        try {
+          const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+          const moduloId = obtenerIdModuloActual();
+          
+          if (!permisos.length || !moduloId) return;
+    
+          // Buscar permisos para este módulo
+          const permiso = permisos.find(p => p.modulo_id == moduloId);
+          if (!permiso) return;
+    
+          // Configurar botones de AGREGAR
+          const botonesAgregar = document.querySelectorAll('.btn-agregar');
+          if (botonesAgregar.length > 0) {
+            botonesAgregar.forEach(boton => {
+              boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+            });
+          }
+    
+          // Configurar botones de EDITAR
+          const botonesEditar = document.querySelectorAll('.btn-editar');
+          if (botonesEditar.length > 0) {
+            botonesEditar.forEach(boton => {
+              boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+            });
+          }
+    
+          // Configurar botones de ELIMINAR
+          const botonesEliminar = document.querySelectorAll('.btn-eliminar');
+          if (botonesEliminar.length > 0) {
+            botonesEliminar.forEach(boton => {
+              boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+            });
+          }
+    
+        } catch (error) {
+          console.error('Error al configurar botones:', error);
+        }
+      }
+    
+      // Ejecutar al cargar la página y cuando se actualicen permisos
+      document.addEventListener('DOMContentLoaded', function() {
+        // Verificar si hay sesión activa
+        if (!localStorage.getItem('perfilId')) {
+          window.location.href = 'index.html';
+          return;
+        }
+        
+        // Configurar botones según permisos
+        configurarBotonesSegunPermisos();
+        
+        // Opcional: Verificar cambios de permisos cada 5 segundos
+        setInterval(configurarBotonesSegunPermisos, 5000);
+      });
+    </script>
+    <h1>Gestión de Empleados</h1>
+<button class="btn-agregar" onclick="mostrarFormulario()">Registrar Empleado</button>
+<table id="tabla-empleados">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Puesto</th>
+      <th>Correo</th>
+      <th>Teléfono</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-    <div class="container">
-        <h1>Gestión de Empleados</h1>
-        <button class="btn-agregar" onclick="mostrarFormulario()">Agregar Empleado</button>
-    </div>
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="titulo-formulario">Registrar Empleado</h3>
+    <form id="form-empleado">
+      <label>Nombre:</label>
+      <input type="text" id="nombre" required><br><br>
+      <label>Puesto:</label>
+      <input type="text" id="puesto" required><br><br>
+      <label>Correo:</label>
+      <input type="email" id="correo" required><br><br>
+      <label>Teléfono:</label>
+      <input type="text" id="telefono" required><br><br>
+      <button type="button" onclick="guardarEmpleado()">Guardar</button>
+      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+    </form>
+    <div id="mensaje-error" style="color:red; display:none;"></div>
+  </div>
+</div>
 
-    <table id="tabla-empleados">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Puesto</th>
-                <th>Correo</th>
-                <th>Teléfono</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<script>
+  // Datos de ejemplo precargados
+  let empleados = [
+    { id: 1, nombre: "Ana López", puesto: "Cajera", correo: "ana@example.com", telefono: "555-1234" },
+    { id: 2, nombre: "Carlos Gómez", puesto: "Repartidor", correo: "carlos@example.com", telefono: "555-5678" },
+  ];
 
-    <div id="paginacion"></div>
+  let empleadoEditando = null;
 
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h2>Ingrese los datos del empleado</h2>
-            <form id="form-empleado">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required>
-                <label for="puesto">Puesto:</label>
-                <input type="text" id="puesto" name="puesto" required>
-                <label for="correo">Correo:</label>
-                <input type="email" id="correo" name="correo" required>
-                <label for="telefono">Teléfono:</label>
-                <input type="text" id="telefono" name="telefono" required>
-                <button type="button" onclick="guardarEmpleado()">Guardar</button>
-                <button type="button" onclick="cerrarFormulario()">Cerrar</button>
-            </form>
-            <div id="mensaje-error" style="color: red; display: none;"></div>
-        </div>
-    </div>
+  function mostrarFormulario() {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("titulo-formulario").innerText = empleadoEditando ? "Editar Empleado" : "Registrar Empleado";
+  }
+
+  function cerrarFormulario() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("form-empleado").reset();
+    document.getElementById("mensaje-error").style.display = "none";
+    empleadoEditando = null;
+  }
+
+  function guardarEmpleado() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const puesto = document.getElementById("puesto").value.trim();
+    const correo = document.getElementById("correo").value.trim();
+    const telefono = document.getElementById("telefono").value.trim();
+
+    if (!nombre || !puesto || !correo || !telefono) {
+      mostrarMensaje("Todos los campos son obligatorios.");
+      return;
+    }
+
+    if (empleadoEditando) {
+      empleadoEditando.nombre = nombre;
+      empleadoEditando.puesto = puesto;
+      empleadoEditando.correo = correo;
+      empleadoEditando.telefono = telefono;
+    } else {
+      const nuevoEmpleado = {
+        id: empleados.length ? empleados[empleados.length - 1].id + 1 : 1,
+        nombre, puesto, correo, telefono
+      };
+      empleados.push(nuevoEmpleado);
+    }
+
+    actualizarTabla();
+    cerrarFormulario();
+  }
+
+  function editarEmpleado(id) {
+    empleadoEditando = empleados.find(e => e.id === id);
+    document.getElementById("nombre").value = empleadoEditando.nombre;
+    document.getElementById("puesto").value = empleadoEditando.puesto;
+    document.getElementById("correo").value = empleadoEditando.correo;
+    document.getElementById("telefono").value = empleadoEditando.telefono;
+    mostrarFormulario();
+  }
+
+  function eliminarEmpleado(id) {
+    if (confirm("¿Seguro que deseas eliminar este empleado?")) {
+      empleados = empleados.filter(e => e.id !== id);
+      actualizarTabla();
+    }
+  }
+
+  function actualizarTabla() {
+    const tbody = document.querySelector("#tabla-empleados tbody");
+    tbody.innerHTML = empleados.map(e => `
+      <tr>
+        <td>${e.id}</td>
+        <td>${e.nombre}</td>
+        <td>${e.puesto}</td>
+        <td>${e.correo}</td>
+        <td>${e.telefono}</td>
+        <td>
+          <button class="btn-editar" onclick="editarEmpleado(${e.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarEmpleado(${e.id})">Eliminar</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function mostrarMensaje(mensaje) {
+    const div = document.getElementById("mensaje-error");
+    div.textContent = mensaje;
+    div.style.display = "block";
+  }
+
+  // Mostrar tabla al cargar
+  actualizarTabla();
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+     // Cambia el ID según el módulo de la página
+  });
+</script>
+
 </body>
 </html>

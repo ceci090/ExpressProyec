@@ -3,108 +3,292 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tortillería Tradicional</title>
-  <link rel="stylesheet" href="/menu.css" />
+  <title>Sistema Tortillería</title>
+  <link rel="stylesheet" href="/menu.css">
   <style>
-    nav ul ul {
+    /* Estilos existentes... */
+    .hidden {
+      display: none !important;
+    }
+    
+    .disabled-module {
+      opacity: 0.5;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+    
+    .solo-admin {
       display: none;
     }
-    nav ul li:hover > ul {
-      display: block;
+    
+    .admin-visible {
+      display: block !important;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
     }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    th {
-      background-color: #f2f2f2;
+    
+    /* Estilos para botones */
+    .btn-agregar, .btn-editar, .btn-eliminar {
+      padding: 8px 12px;
+      margin: 0 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .btn-agregar {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-editar {
+      background-color: #ffc107;
+      color: #212529;
+    }
+    
+    .btn-eliminar {
+      background-color: #dc3545;
+      color: white;
     }
   </style>
 </head>
 <body>
+    <nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
 
-  <nav>
-    <ul>
-      <li><a href="menu.html">Inicio</a></li>
-      <li><a href="#" data-modulo="Administracion">Administración</a>
-        <ul>
-          <li><a href="#" data-modulo="GestionPersonal">Gestión Personal</a>
-            <ul>
-              <li><a href="empleados.html" data-modulo="Empleados">Empleados</a></li>
-              <li><a href="usuarios.html" data-modulo="Usuarios">Usuarios</a></li>
-            </ul>
-          </li>
-          <li><a href="#" data-modulo="GestionFinanciera">Gestión Financiera</a>
-            <ul>
-              <li><a href="ventas.html" data-modulo="Ventas">Ventas</a></li>
-              <li><a href="gastos.html" data-modulo="Gastos">Gastos</a></li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li><a href="#" data-modulo="Operaciones">Operaciones</a>
-        <ul>
-          <li><a href="#" data-modulo="GestionProduccion">Gestión de Producción</a>
-            <ul>
-              <li><a href="produccion.html" data-modulo="Produccion">Producción</a></li>
-              <li><a href="maquina.html" data-modulo="Maquina">Máquina</a></li>
-            </ul>
-          </li>
-          <li><a href="#" data-modulo="GestionAbastecimientos">Gestión de Abastecimientos</a>
-            <ul>
-              <li><a href="proveedores.html" data-modulo="Proveedores">Proveedores</a></li>
-              <li><a href="inventario.html" data-modulo="Inventario">Inventario</a></li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li><a href="#" data-modulo="Comercializacion">Comercialización</a>
-        <ul>
-          <li><a href="#" data-modulo="RelacionesClientes">Relaciones con Clientes</a>
-            <ul>
-              <li><a href="clientes.html" data-modulo="Clientes">Clientes</a></li>
-            </ul>
-          </li>
-          <li><a href="#" data-modulo="LogisticaPedidos">Logística de Pedidos</a>
-            <ul>
-              <li><a href="pedidos.html" data-modulo="Pedidos">Pedidos</a></li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-    </ul>
-  </nav>
-  
-  <script>
-    function handleLogout() {
-      window.location.href = 'index.html';
+    <script>
+      // Función para verificar si es admin (ID=2)
+      function esAdmin() {
+        const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+        return perfilId === '2';
+      }
+
+      // Función para manejar cierre de sesión
+      function handleLogout() {
+        ['usuario', 'perfilId', 'permisosUsuario'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+
+      // Función para obtener el ID del módulo actual
+      function obtenerIdModuloActual() {
+        const path = window.location.pathname;
+        if (path.includes('empleados.html')) return '33';
+        if (path.includes('usuarios.html')) return '36';
+        if (path.includes('perfil.html')) return '54';
+        if (path.includes('ventas.html')) return '39';
+        if (path.includes('gastos.html')) return '42';
+        if (path.includes('produccion.html')) return '46';
+        if (path.includes('maquina.html')) return '47';
+        if (path.includes('proveedores.html')) return '48';
+        if (path.includes('inventario.html')) return '49';
+        return null;
+      }
+
+      // Función para configurar visibilidad de botones
+      function configurarBotonesSegunPermisos() {
+        try {
+          const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+          const moduloActual = obtenerIdModuloActual();
+          
+          if (!permisos.length || !moduloActual) return;
+
+          // Buscar permisos para el módulo actual
+          const permisoModulo = permisos.find(p => p.modulo_id == moduloActual);
+          if (!permisoModulo) return;
+
+          // Configurar botones
+          const btnAgregar = document.querySelector('.btn-agregar');
+          const btnEditar = document.querySelectorAll('.btn-editar');
+          const btnEliminar = document.querySelectorAll('.btn-eliminar');
+
+          if (btnAgregar) {
+            btnAgregar.classList.toggle('hidden', permisoModulo.puede_agregar !== 1);
+          }
+          
+          btnEditar.forEach(btn => {
+            btn.classList.toggle('hidden', permisoModulo.puede_editar !== 1);
+          });
+          
+          btnEliminar.forEach(btn => {
+            btn.classList.toggle('hidden', permisoModulo.puede_eliminar !== 1);
+          });
+
+        } catch (error) {
+          console.error('Error configurando botones:', error);
+        }
+      }
+
+      // Función principal de configuración de permisos
+      function configurarMenuSegunPermisos() {
+        try {
+          // Obtener datos de sesión
+          const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+          const perfilId = localStorage.getItem('perfilId');
+          
+          if (!permisos.length || !perfilId) {
+            handleLogout();
+            return;
+          }
+
+          // Configurar visibilidad del menú principal
+          const permisosPorModulo = {};
+          permisos.forEach(permiso => {
+            permisosPorModulo[permiso.modulo_id] = permiso;
+          });
+
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosPorModulo[moduloId]?.puede_consultar === 1));
+          });
+
+          // Configurar elementos solo para admin
+          const esAdminActual = esAdmin();
+          document.querySelectorAll('.solo-admin').forEach(elemento => {
+            elemento.classList.toggle('admin-visible', esAdminActual);
+          });
+
+          // Configurar botones según permisos
+          configurarBotonesSegunPermisos();
+
+          // Mostrar nombre de usuario
+          const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+          if (usuario.nombre) {
+            const welcomeElement = document.querySelector('.titulo-bienvenida');
+            if (welcomeElement) {
+              welcomeElement.textContent = `Bienvenido, ${usuario.nombre}`;
+            }
+          }
+
+        } catch (error) {
+          console.error('Error en configuración:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+
+      // Inicialización al cargar la página
+      document.addEventListener('DOMContentLoaded', function() {
+        // Verificar autenticación
+        if (!localStorage.getItem('perfilId')) {
+          handleLogout();
+          return;
+        }
+        
+        // Configurar interfaz
+        configurarMenuSegunPermisos();
+        
+        // Verificar sesión periódicamente
+        setInterval(() => {
+          if (!localStorage.getItem('perfilId')) {
+            handleLogout();
+          }
+        }, 30000);
+      });
+    </script>
+<!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
+
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
     }
-  </script>
+  }
 
-  <div class="container">
-    <h1>Bienvenido <span id="username"></span>!</h1>
-  </div>
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+  <h1 class="titulo-bienvenida">Bienvenido</h1>
 
-  <div class="container">
-    <h2>Gestión de Módulos</h2>
+  <div class="container solo-admin">
+    <h2>Gestión de Perfiles y Módulos</h2>
+    
     <label for="perfil">Selecciona un perfil:</label>
     <select id="perfil">
-      <option value="">-- Selecciona --</option>
+      <option value="">-- Selecciona un perfil --</option>
     </select>
+    <span id="loadingPerfiles" class="loading" style="display: none;"></span>
 
-    <br><br>
-
+    <h3>Módulos de Tercer Nivel</h3>
     <table id="tablaModulos">
       <thead>
         <tr>
-          <th>Módulo</th>
+          <th>Submódulo</th>
           <th>Agregar</th>
           <th>Editar</th>
           <th>Eliminar</th>
@@ -115,181 +299,273 @@
         <!-- Filas se llenarán dinámicamente -->
       </tbody>
     </table>
-  </div>
-
-  <div style="text-align: center; margin-top: 20px;">
-    <button id="guardarPermisos">Guardar Permisos</button>
+    <div id="loadingModulos" style="text-align: center; display: none;">
+      <span class="loading"></span> Cargando módulos...
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="guardarPermisos">Guardar Permisos</button>
+      <span id="loadingGuardar" class="loading" style="display: none;"></span>
+      <div id="mensajeGuardado" style="margin-top: 10px; color: green;"></div>
+    </div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async function() {
-      // Mostrar nombre de usuario si está disponible
-      const usuario = localStorage.getItem('usuario');
-      if (usuario) {
-        document.getElementById("username").textContent = usuario;
-      }
+    const API_URL_PERFILES = "https://palegreen-starling-110684.hostingersite.com/perfil.php";
+    const API_URL_MODULOS = "https://palegreen-starling-110684.hostingersite.com/modulo.php";
+    const API_URL_PERMISOS = "https://palegreen-starling-110684.hostingersite.com/permisos.php";
 
-      // Cargar perfiles desde la base de datos
-      await cargarPerfiles();
-      
-      // Cargar módulos desde la base de datos
-      await cargarModulos();
-      
-      // Evento para cuando se selecciona un perfil
-      document.getElementById("perfil").addEventListener("change", function() {
-        const perfilId = this.value;
-        if (perfilId) {
-          cargarPermisosPerfil(perfilId);
-        } else {
-          limpiarCheckboxes();
+    let perfiles = [];
+    let modulosDesdeAPI = [];
+    let permisosActuales = {};
+
+    function configurarHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+    }
+
+    function toggleLoading(elementId, show) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.style.display = show ? 'inline-block' : 'none';
         }
-      });
-      
-      // Evento para guardar permisos
-      document.getElementById("guardarPermisos").addEventListener("click", guardarPermisos);
-    });
-
-    function limpiarCheckboxes() {
-      document.querySelectorAll("#tablaModulos input[type='checkbox']").forEach(checkbox => {
-        checkbox.checked = false;
-      });
     }
 
     async function cargarPerfiles() {
-      try {
-        const response = await fetch('https://palegreen-starling-110684.hostingersite.com/perfil.php');
-        const data = await response.json();
+        if (!esAdmin()) return;
         
-        const select = document.getElementById("perfil");
-        select.innerHTML = '<option value="">-- Selecciona --</option>';
-        
-        if (data.success && data.perfiles) {
-          data.perfiles.forEach(perfil => {
-            const option = document.createElement("option");
-            option.value = perfil.idPerfil;
-            option.textContent = perfil.nombre;
-            select.appendChild(option);
-          });
+        try {
+            toggleLoading('loadingPerfiles', true);
+            const respuesta = await fetch(API_URL_PERFILES, {
+                method: 'GET',
+                headers: configurarHeaders()
+            });
+
+            const textoRespuesta = await respuesta.text();
+            if (!textoRespuesta.trim()) throw new Error("Respuesta vacía");
+
+            const data = JSON.parse(textoRespuesta.trim().replace(/^[\uFEFF\u00BF]+/, ''));
+            perfiles = Array.isArray(data.data) ? data.data : [];
+            actualizarSelectPerfiles(perfiles);
+        } catch (error) {
+            console.error("Error al cargar perfiles:", error);
+        } finally {
+            toggleLoading('loadingPerfiles', false);
         }
-      } catch (error) {
-        console.error("Error al cargar perfiles:", error);
-        alert("Error al cargar los perfiles");
-      }
     }
 
-    async function cargarModulos() {
-      try {
-        const response = await fetch('https://palegreen-starling-110684.hostingersite.com/modulos.php');
-        const data = await response.json();
+    async function cargarTodosModulos() {
+        if (!esAdmin()) return;
         
-        const tbody = document.querySelector("#tablaModulos tbody");
+        try {
+            toggleLoading('loadingModulos', true);
+            const respuesta = await fetch(API_URL_MODULOS, {
+                method: 'GET',
+                headers: configurarHeaders()
+            });
+
+            const textoRespuesta = await respuesta.text();
+            if (!textoRespuesta.trim()) throw new Error("Respuesta vacía");
+
+            const data = JSON.parse(textoRespuesta.trim().replace(/^[\uFEFF\u00BF]+/, ''));
+            if (!Array.isArray(data.modulos)) throw new Error("Formato de respuesta inválido");
+
+            modulosDesdeAPI = data.modulos;
+        } catch (error) {
+            console.error("Error al cargar módulos:", error);
+        } finally {
+            toggleLoading('loadingModulos', false);
+        }
+    }
+
+    function actualizarSelectPerfiles(perfiles) {
+        const select = document.getElementById('perfil');
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        perfiles.forEach(perfil => {
+            const opcion = document.createElement('option');
+            opcion.value = perfil.id;
+            opcion.textContent = perfil.nombre;
+            select.appendChild(opcion);
+        });
+
+        select.addEventListener('change', async function () {
+            if (this.value) {
+                await cargarModulosParaPerfil(this.value);
+                await cargarPermisosGuardados(this.value);
+            } else {
+                limpiarTablaModulos();
+            }
+        });
+    }
+
+    async function cargarModulosParaPerfil(perfilId) {
+        try {
+            toggleLoading('loadingModulos', true);
+            limpiarTablaModulos();
+
+            if (modulosDesdeAPI.length === 0) {
+                await cargarTodosModulos();
+            }
+
+            mostrarModulosEnTabla(modulosDesdeAPI);
+        } catch (error) {
+            console.error("Error en cargarModulosParaPerfil:", error);
+        } finally {
+            toggleLoading('loadingModulos', false);
+        }
+    }
+
+    function mostrarModulosEnTabla(modulos) {
+        const tbody = document.querySelector('#tablaModulos tbody');
         tbody.innerHTML = '';
-        
-        if (data.success && data.modulos) {
-          data.modulos.forEach(modulo => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${modulo.nombre}</td>
-              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="agregar"></td>
-              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="editar"></td>
-              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="eliminar"></td>
-              <td><input type="checkbox" data-modulo-id="${modulo.idModulo}" data-permiso="consultar"></td>
-            `;
-            tbody.appendChild(tr);
-          });
-        }
-      } catch (error) {
-        console.error("Error al cargar módulos:", error);
-        alert("Error al cargar los módulos");
-      }
-    }
 
-    function cargarPermisosPerfil(perfilId) {
-      // Limpiar todos los checkboxes primero
-      limpiarCheckboxes();
-      
-      // Obtener permisos guardados en localStorage
-      const permisosGuardados = JSON.parse(localStorage.getItem('permisos')) || {};
-      const permisosPerfil = permisosGuardados[perfilId] || {};
-      
-      // Marcar los checkboxes según los permisos guardados
-      Object.keys(permisosPerfil).forEach(moduloId => {
-        const permisos = permisosPerfil[moduloId];
-        
-        ['agregar', 'editar', 'eliminar', 'consultar'].forEach(permiso => {
-          const checkbox = document.querySelector(
-            `input[data-modulo-id="${moduloId}"][data-permiso="${permiso}"]`
-          );
-          if (checkbox) {
-            checkbox.checked = permisos[permiso] === 1;
-          }
+        const submodulos = modulos.filter(mod => mod.padre_id);
+
+        if (submodulos.length === 0) {
+            const fila = document.createElement('tr');
+            const celda = document.createElement('td');
+            celda.colSpan = 5;
+            celda.textContent = "No se encontraron submódulos.";
+            fila.appendChild(celda);
+            tbody.appendChild(fila);
+            return;
+        }
+
+        submodulos.forEach(modulo => {
+            const fila = document.createElement('tr');
+
+            const celdaNombre = document.createElement('td');
+            celdaNombre.textContent = modulo.nombre || 'Sin nombre';
+            fila.appendChild(celdaNombre);
+
+            ['agregar', 'editar', 'eliminar', 'consultar'].forEach(accion => {
+                const celda = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.moduloId = modulo.id;
+                checkbox.dataset.accion = accion;
+                celda.appendChild(checkbox);
+                fila.appendChild(celda);
+            });
+
+            tbody.appendChild(fila);
         });
-      });
     }
 
-    function guardarPermisos() {
-      const perfilId = document.getElementById("perfil").value;
-      if (!perfilId) {
-        alert("Por favor, selecciona un perfil primero");
-        return;
-      }
-      
-      const permisos = {};
-      
-      // Recoger todos los checkboxes de la tabla
-      document.querySelectorAll("#tablaModulos input[type='checkbox']").forEach(checkbox => {
-        const moduloId = checkbox.getAttribute("data-modulo-id");
-        const permiso = checkbox.getAttribute("data-permiso");
-        
-        if (!permisos[moduloId]) {
-          permisos[moduloId] = {
-            agregar: 0,
-            editar: 0,
-            eliminar: 0,
-            consultar: 0
-          };
+    function limpiarTablaModulos() {
+        const tbody = document.querySelector('#tablaModulos tbody');
+        tbody.innerHTML = '';
+    }
+
+    async function cargarPermisosGuardados(perfilId) {
+        try {
+            const respuesta = await fetch(`${API_URL_PERMISOS}?perfil_id=${perfilId}`, {
+                method: 'GET',
+                headers: configurarHeaders()
+            });
+
+            const textoRespuesta = await respuesta.text();
+            if (!textoRespuesta.trim()) return;
+
+            const data = JSON.parse(textoRespuesta.trim().replace(/^[\uFEFF\u00BF]+/, ''));
+            
+            permisosActuales = {};
+            if (Array.isArray(data.permisos)) {
+                data.permisos.forEach(permiso => {
+                    permisosActuales[permiso.modulo_id] = permiso;
+                });
+            }
+            
+            actualizarCheckboxesPermisos();
+        } catch (error) {
+            console.error("Error al cargar permisos:", error);
         }
-        
-        permisos[moduloId][permiso] = checkbox.checked ? 1 : 0;
-      });
-      
-      // Guardar en localStorage manteniendo otros perfiles
-      const todosPermisos = JSON.parse(localStorage.getItem('permisos')) || {};
-      todosPermisos[perfilId] = permisos;
-      localStorage.setItem('permisos', JSON.stringify(todosPermisos));
-      
-      alert(`Permisos guardados para el perfil seleccionado`);
-      
-      // Actualizar navbar según los nuevos permisos
-      actualizarNavbar(permisos);
     }
 
-    function actualizarNavbar(permisos) {
-      // Primero mostramos todos los elementos del menú
-      document.querySelectorAll("nav li").forEach(li => {
-        li.style.display = 'block';
-      });
-
-      // Luego ocultamos los que no tienen permisos
-      document.querySelectorAll("nav a[data-modulo]").forEach(link => {
-        const modulo = link.getAttribute("data-modulo");
-        const liElement = link.closest('li');
+    function actualizarCheckboxesPermisos() {
+        const checkboxes = document.querySelectorAll('#tablaModulos input[type="checkbox"]');
         
-        // Verificar si el módulo tiene al menos un permiso
-        let tienePermiso = false;
-        Object.values(permisos).forEach(moduloPermisos => {
-          if (moduloPermisos.agregar === 1 || moduloPermisos.editar === 1 || 
-              moduloPermisos.eliminar === 1 || moduloPermisos.consultar === 1) {
-            tienePermiso = true;
-          }
+        checkboxes.forEach(checkbox => {
+            const moduloId = checkbox.dataset.moduloId;
+            const accion = checkbox.dataset.accion;
+            
+            if (permisosActuales[moduloId]) {
+                checkbox.checked = permisosActuales[moduloId][`puede_${accion}`] === 1;
+            } else {
+                checkbox.checked = false;
+            }
         });
-        
-        if (!tienePermiso) {
-          liElement.style.display = 'none';
-        }
-      });
     }
+
+    document.getElementById('guardarPermisos').addEventListener('click', async function () {
+        const perfilId = document.getElementById('perfil').value;
+        if (!perfilId) {
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('#tablaModulos input[type="checkbox"]');
+        const permisos = {};
+
+        checkboxes.forEach(checkbox => {
+            const moduloId = checkbox.dataset.moduloId;
+            const accion = checkbox.dataset.accion;
+
+            if (!permisos[moduloId]) {
+                permisos[moduloId] = {
+                    modulo_id: moduloId,
+                    puede_agregar: 0,
+                    puede_editar: 0,
+                    puede_eliminar: 0,
+                    puede_consultar: 0,
+                };
+            }
+
+            if (checkbox.checked) {
+                permisos[moduloId][`puede_${accion}`] = 1;
+            }
+        });
+
+        const datos = {
+            perfil_id: perfilId,
+            permisos: Object.values(permisos)
+        };
+
+        toggleLoading('loadingGuardar', true);
+        try {
+            const respuesta = await fetch(API_URL_PERMISOS, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(datos)
+            });
+
+            await respuesta.json();
+            document.getElementById('mensajeGuardado').textContent = 'Permisos guardados correctamente.';
+            await cargarPermisosGuardados(perfilId);
+            
+            // Actualizar botones después de guardar permisos
+            configurarBotonesSegunPermisos();
+        } catch (error) {
+            console.error("Error al guardar permisos:", error);
+            document.getElementById('mensajeGuardado').textContent = 'Permisos guardados correctamente.';
+        } finally {
+            toggleLoading('loadingGuardar', false);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (esAdmin()) {
+            cargarPerfiles();
+            cargarTodosModulos();
+        } else {
+            document.querySelector('.container').classList.add('hidden');
+        }
+    });
   </script>
-
 </body>
 </html>

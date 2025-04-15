@@ -27,23 +27,46 @@ app.get('/nosotros', (req, res) => {
 
 // Configuración de la conexión a la base de datos MySQL
 const dbConfig = {
-  host: "127.0.0.1", // Asegúrate de que tu MySQL esté en el puerto correcto
-  user: "u668721882_rbMqU", // Cambia según tu configuración
-  password: "Kcm42990", // La contraseña de la base de datos
-  database: "u668721882_r1lFO",
+  host: "127.0.0.1",
+  user: "u668721882_Ceci",
+  password: "Kcm1524.",
+  database: "u668721882_Tortilleria7",
 };
 
 // Crear conexión a la base de datos MySQL
 const pool = mysql.createPool(dbConfig);
 
-// Ruta para obtener datos de la base de datos (ejemplo)
-app.get('/api/data', (req, res) => {
-  pool.query('SELECT * FROM your_table', (err, results) => {
+// Ruta para obtener los permisos de un perfil
+app.get('/perfil/:id/permiso', (req, res) => {
+  const perfilId = req.params.id;
+
+  // Consulta SQL para obtener los permisos de los módulos para el perfil
+  const query = `
+    SELECT 
+      p.nombre AS perfil_nombre, 
+      m.id AS modulo_id, 
+      m.nombre AS modulo_nombre,
+      pm.puede_agregar, pm.puede_editar, pm.puede_eliminar, pm.puede_consultar
+    FROM perfiles p
+    JOIN permisos pm ON p.id = pm.perfil_id
+    JOIN modulos m ON pm.modulo_id = m.id
+    WHERE p.id = ?
+  `;
+
+  // Ejecutar la consulta
+  pool.query(query, [perfilId], (err, results) => {
     if (err) {
       console.error('Error al consultar la base de datos:', err);
       return res.status(500).send('Error al consultar la base de datos');
     }
-    res.json(results); // Devuelve los datos de la consulta
+
+    // Si no se encontraron resultados
+    if (results.length === 0) {
+      return res.status(404).send({ error: 'No se encontraron permisos para este perfil' });
+    }
+
+    // Enviar los datos de permisos al cliente (puedes usar JSON o renderizar una vista)
+    res.json(results);
   });
 });
 

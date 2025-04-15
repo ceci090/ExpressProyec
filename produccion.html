@@ -5,265 +5,417 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Producción</title>
   <link rel="stylesheet" href="/produccion.css" />
-  <script>
-    const API_URL = "https://palegreen-starling-110684.hostingersite.com/produccion.php"; 
-    let produccionEditando = null;
-    let producciones = [];
-    let paginaActual = 1;
-    const produccionesPorPagina = 5;
-
-    async function cargarProduccion() {
-      try {
-        const respuesta = await fetch(API_URL);
-        producciones = await respuesta.json();
-        const produccionesMostrar = producciones.slice((paginaActual - 1) * produccionesPorPagina, paginaActual * produccionesPorPagina);
-
-        const tabla = document.getElementById("tabla-produccion").getElementsByTagName('tbody')[0];
-        tabla.innerHTML = produccionesMostrar.map(p => `
-          <tr>
-            <td>${p.id}</td>
-            <td>${p.fecha}</td>
-            <td>${p.lote}</td>
-            <td>${p.produccion_kg}</td>
-            <td>
-              <button class="edit-btn" onclick="editarProduccion(${p.id}, '${p.fecha}', '${p.lote}', ${p.produccion_kg})">Editar</button>
-              <button class="btn-eliminar" onclick="eliminarProduccion(${p.id})">Eliminar</button>
-            </td>
-          </tr>
-        `).join("");
-
-        actualizarPaginacion();
-      } catch (error) {
-        console.error("Error al cargar la producción:", error);
-        mostrarMensaje("Hubo un problema al cargar la producción.");
-      }
-    }
-
-    async function eliminarProduccion(id) {
-      if (confirm("¿Estás seguro de que quieres eliminar esta producción?")) {
-        try {
-          const response = await fetch(`${API_URL}?id=${id}`, {
-            method: 'DELETE',
-          });
-
-          const data = await response.json();
-          if (data.success) {
-            alert("Producción eliminada correctamente");
-            cargarProduccion();
-          } else {
-            mostrarMensaje("Error al eliminar la producción.");
-          }
-        } catch (error) {
-          console.error("Error al eliminar la producción:", error);
-          mostrarMensaje("Hubo un problema al eliminar la producción.");
-        }
-      }
-    }
-
-    function actualizarPaginacion() {
-      const totalPaginas = Math.ceil(producciones.length / produccionesPorPagina);
-      const paginacion = document.getElementById("paginacion");
-      paginacion.innerHTML = `
-        <button onclick="cambiarPagina(${paginaActual - 1})" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-        <span>Página ${paginaActual} de ${totalPaginas}</span>
-        <button onclick="cambiarPagina(${paginaActual + 1})" ${paginaActual === totalPaginas ? 'disabled' : ''}>Siguiente</button>
-      `;
-    }
-
-    function cambiarPagina(nuevaPagina) {
-      const totalPaginas = Math.ceil(producciones.length / produccionesPorPagina);
-      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
-        paginaActual = nuevaPagina;
-        cargarProduccion();
-      }
-    }
-
-    function mostrarFormulario() {
-      document.getElementById("modal").style.display = "block";
-    }
-
-    function cerrarFormulario() {
-      document.getElementById("modal").style.display = "none";
-      document.getElementById("form-produccion").reset();
-      produccionEditando = null;
-      limpiarMensajes();
-    }
-
-    function mostrarMensaje(mensaje) {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = mensaje;
-      mensajeDiv.style.display = "block";
-    }
-
-    function limpiarMensajes() {
-      const mensajeDiv = document.getElementById("mensaje-error");
-      mensajeDiv.textContent = "";
-      mensajeDiv.style.display = "none";
-    }
-
-    async function guardarProduccion() {
-      limpiarMensajes();
-
-      const fecha = document.getElementById("fecha").value;
-      const lote = document.getElementById("lote").value;
-      const produccion_kg = document.getElementById("produccion_kg").value;
-
-      if (!fecha || !lote || !produccion_kg) {
-        mostrarMensaje("Todos los campos son obligatorios.");
-        return;
-      }
-
-      const produccionData = { fecha, lote, produccion_kg };
-
-      try {
-        let response;
-        if (produccionEditando) {
-          produccionData.id = produccionEditando.id;
-          response = await fetch(API_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(produccionData)
-          });
-        } else {
-          response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(produccionData)
-          });
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          alert(produccionEditando ? "Producción actualizada correctamente" : "Producción registrada correctamente");
-          cargarProduccion();
-          cerrarFormulario();
-        } else {
-          mostrarMensaje(produccionEditando ? "Error al actualizar la producción" : "Error al registrar la producción");
-        }
-      } catch (error) {
-        console.error("Error al guardar la producción:", error);
-        mostrarMensaje("Hubo un problema al guardar la producción.");
-      }
-    }
-
-    function editarProduccion(id, fecha, lote, produccion_kg) {
-      produccionEditando = { id, fecha, lote, produccion_kg };
-      document.getElementById("fecha").value = fecha;
-      document.getElementById("lote").value = lote;
-      document.getElementById("produccion_kg").value = produccion_kg;
-      mostrarFormulario();
-    }
-
-    document.addEventListener("DOMContentLoaded", cargarProduccion);
-  </script>
 </head>
 <body>
-  <header>
+  <style>
+    /* Estilos para el menú dinámico */
+    .oculto {
+      display: none !important;
+    }
+    
+    nav ul ul ul {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+    }
+    
+    nav ul li:hover > ul {
+      display: block;
+    }
+    
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      background: #333;
+      position: relative;
+      display: inline-table;
+      width: 100%;
+    }
+    
+    nav ul li {
+      float: left;
+      position: relative;
+    }
+    
+    nav ul li a {
+      display: block;
+      padding: 10px 15px;
+      color: #fff;
+      text-decoration: none;
+    }
+    
+    nav ul li a:hover {
+      background: #555;
+    }
+    
+    nav ul ul {
+      background: #444;
+      position: absolute;
+      top: 100%;
+    }
+    
+    nav ul ul li {
+      float: none;
+      position: relative;
+    }
+    
+    nav ul ul li a {
+      padding: 8px 15px;
+      color: #fff;
+    }
+    
+    nav ul ul li a:hover {
+      background: #666;
+    }
+    
+    /* Estilos para el contenido principal */
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .loading {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden { display: none !important; }
+.disabled-module {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
+</head>
+</body>
+</head>
+<body>
+</head>
+<body>
     <nav>
-      <ul>
-        <li><a href="menu.html">Inicio</a></li>
-  
-        <li><a href="#">Administración</a>
-          <ul>
-            <li><a href="#">Gestión Personal</a>
-              <ul>
-                <li><a href="empleados.html">Empleados</a></li>
-                <li><a href="usuarios.html">Usuarios</a></li> 
-              </ul>
-            </li>
-            <li><a href="#">Gestión Financiera</a>
-              <ul>
-                <li><a href="ventas.html">Ventas</a></li>
-                <li><a href="gastos.html">Gastos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Operaciones</a>
-          <ul>
-            <li><a href="#">Gestión de Producción</a>
-              <ul>
-                <li><a href="produccion.html">Producción</a></li>
-                <li><a href="maquina.html">Máquina</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Gestión de Abastecimientos</a>
-              <ul>
-                <li><a href="proveedores.html">Proveedores</a></li>
-                <li><a href="inventario.html">Inventario</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-  
-        <li><a href="#">Comercialización</a>
-          <ul>
-            <li><a href="#">Relaciones con Clientes</a>
-              <ul>
-                <li><a href="clientes.html">Clientes</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Logística de Pedidos</a>
-              <ul>
-                <li><a href="pedidos.html">Pedidos</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-            <!-- Agregar el enlace para cerrar sesión al final del menú -->
-<li><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
-</ul>
-</nav>
+        <ul id="mainMenu">
+          <li id="mod_inicio"><a href="menu.html">Inicio</a></li>
+          <li id="submod_33" class="submodulo"><a href="empleados.html">Empleados</a></li>
+          <li id="submod_36" class="submodulo"><a href="usuarios.html">Usuarios</a></li>
+          <li id="submod_54" class="submodulo"><a href="perfil.html">Perfil</a></li>
+          <li id="submod_39" class="submodulo"><a href="ventas.html">Ventas</a></li>
+          <li id="submod_42" class="submodulo"><a href="gastos.html">Gastos</a></li>
+          <li id="submod_46" class="submodulo"><a href="produccion.html">Producción</a></li>
+          <li id="submod_47" class="submodulo"><a href="maquina.html">Máquina</a></li>
+          <li id="submod_48" class="submodulo"><a href="proveedores.html">Proveedores</a></li>
+          <li id="submod_49" class="submodulo"><a href="inventario.html">Inventario</a></li>
+          <li id="mod_cerrar_sesion"><a href="#" onclick="handleLogout()">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <script>
+      // Versión optimizada para incluir en todos los HTMLs
+      function handleLogout() {
+        // Limpiar solo datos esenciales
+        ['permisosUsuario', 'perfilTemp'].forEach(item => {
+          localStorage.removeItem(item);
+          sessionStorage.removeItem(item);
+        });
+        window.location.href = 'index.html';
+      }
+    
+      function configurarMenuSegunPermisos() {
+        try {
+          // 1. Obtener datos actualizados del perfil
+          const perfilId = sessionStorage.getItem('perfilTemp') || 
+                          localStorage.getItem('perfilTemp') ||
+                          sessionStorage.getItem('perfilId') || 
+                          localStorage.getItem('perfilId');
+          
+          // 2. Obtener permisos (con prioridad a los más recientes)
+          const permisos = JSON.parse(
+            sessionStorage.getItem('permisosActualizados') ||
+            localStorage.getItem('permisosActualizados') ||
+            sessionStorage.getItem('permisosUsuario') || 
+            localStorage.getItem('permisosUsuario') || 
+            '[]'
+          );
+    
+          // 3. Verificación básica
+          if (!perfilId) {
+            console.warn('No hay perfilId, redirigiendo a menú');
+            window.location.href = 'menu.html';
+            return;
+          }
+    
+          // 4. Convertir permisos a formato accesible
+          const permisosModulos = {};
+          permisos.forEach(permiso => {
+            permisosModulos[permiso.modulo_id] = permiso;
+          });
+    
+          // 5. Aplicar visibilidad a módulos
+          document.querySelectorAll('.submodulo').forEach(modulo => {
+            const moduloId = modulo.id.replace('submod_', '');
+            modulo.classList.toggle('hidden', !(permisosModulos[moduloId]?.puede_consultar === 1));
+          });
+    
+          // 6. Actualizar datos de sesión permanentes
+          if (sessionStorage.getItem('perfilTemp') || localStorage.getItem('perfilTemp')) {
+            sessionStorage.setItem('perfilId', perfilId);
+            localStorage.setItem('perfilId', perfilId);
+            sessionStorage.removeItem('perfilTemp');
+            localStorage.removeItem('perfilTemp');
+            
+            sessionStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            localStorage.setItem('permisosUsuario', JSON.stringify(permisos));
+            sessionStorage.removeItem('permisosActualizados');
+            localStorage.removeItem('permisosActualizados');
+          }
+    
+        } catch (error) {
+          console.error('Error configurando menú:', error);
+          window.location.href = 'menu.html';
+        }
+      }
+    
+      // Inicialización mejorada
+      document.addEventListener('DOMContentLoaded', function() {
+        // Esperar breve momento para asegurar carga completa
+        setTimeout(() => {
+          const perfilId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+          
+          if (!perfilId) {
+            handleLogout();
+            return;
+          }
+          
+          configurarMenuSegunPermisos();
+          
+          // Verificar sesión cada 45 segundos
+          setInterval(() => {
+            const checkId = sessionStorage.getItem('perfilId') || localStorage.getItem('perfilId');
+            if (!checkId) handleLogout();
+          }, 45000);
+        }, 50);
+      });
+    </script>
+    <!-- Al final de cada HTML, después de tu script actual pero antes de </body> -->
+<script>
+  // Función para obtener ID del módulo actual - DEBES INCLUIRLA EN CADA HTML
+  function obtenerIdModuloActual() {
+    const path = window.location.pathname;
+    if (path.includes('empleados.html')) return '33';
+    if (path.includes('usuarios.html')) return '36';
+    if (path.includes('perfil.html')) return '54';
+    if (path.includes('ventas.html')) return '39';
+    if (path.includes('gastos.html')) return '42';
+    if (path.includes('produccion.html')) return '46';
+    if (path.includes('maquina.html')) return '47';
+    if (path.includes('proveedores.html')) return '48';
+    if (path.includes('inventario.html')) return '49';
+    return null;
+  }
+
+  // Función para configurar botones - DEBES INCLUIRLA EN CADA HTML
+  function configurarBotonesSegunPermisos() {
+    try {
+      const permisos = JSON.parse(localStorage.getItem('permisosUsuario') || '[]');
+      const moduloId = obtenerIdModuloActual();
+      
+      if (!permisos.length || !moduloId) return;
+
+      const permiso = permisos.find(p => p.modulo_id == moduloId);
+      if (!permiso) return;
+
+      // Controlar botones .btn-agregar
+      document.querySelectorAll('.btn-agregar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_agregar !== 1);
+      });
+
+      // Controlar botones .btn-editar
+      document.querySelectorAll('.btn-editar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_editar !== 1);
+      });
+
+      // Controlar botones .btn-eliminar
+      document.querySelectorAll('.btn-eliminar').forEach(boton => {
+        boton.classList.toggle('hidden', permiso.puede_eliminar !== 1);
+      });
+
+    } catch (error) {
+      console.error('Error configurando botones:', error);
+    }
+  }
+
+  // EJECUTAR AL CARGAR - AGREGA ESTO EN CADA HTML
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar 500ms para asegurar que todo esté cargado
+    setTimeout(() => {
+      configurarBotonesSegunPermisos();
+      
+      // Actualizar cada 5 segundos por si cambian los permisos
+      setInterval(configurarBotonesSegunPermisos, 5000);
+    }, 500);
+  });
+</script>
+<h1>Gestión de Producción</h1>
+<button class="btn-agregar" onclick="mostrarFormulario()">Registrar Producción</button>
+
+<table id="tabla-produccion">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Fecha</th>
+      <th>Lote</th>
+      <th>Producción (kg)</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="titulo-formulario">Registrar Producción</h3>
+    <form id="form-produccion">
+      <label>Fecha:</label>
+      <input type="date" id="fecha" required><br><br>
+      <label>Lote:</label>
+      <input type="text" id="lote" required><br><br>
+      <label>Producción (kg):</label>
+      <input type="number" id="produccion" required><br><br>
+      <button type="button" onclick="guardarProduccion()">Guardar</button>
+      <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+    </form>
+    <div id="mensaje-error" style="color:red; display:none;"></div>
+  </div>
+</div>
 
 <script>
-function handleLogout() {
-// Redirige al usuario a la página de inicio de sesión o página principal
-window.location.href = 'index.html'; // O cualquier otra página donde se maneje el cierre de sesión
-}
-</script>
-      </ul>
-      
-    </nav>
-</header>
+  let registros = [
+    { id: 1, fecha: "2025-04-01", lote: "A-101", produccion: 300 },
+    { id: 2, fecha: "2025-04-02", lote: "A-102", produccion: 450 }
+  ];
 
+  let editando = null;
 
-  <div class="container">
-    <h1>Gestión de Producción</h1>
-    <button class="btn-agregar" onclick="mostrarFormulario()">Registrar Producción</button>
-  </div>
+  function mostrarFormulario() {
+    document.getElementById("modal").style.display = "block";
+    document.getElementById("titulo-formulario").innerText = editando ? "Editar Producción" : "Registrar Producción";
+  }
 
-  <table id="tabla-produccion">
-    <thead>
+  function cerrarFormulario() {
+    document.getElementById("modal").style.display = "none";
+    document.getElementById("form-produccion").reset();
+    document.getElementById("mensaje-error").style.display = "none";
+    editando = null;
+  }
+
+  function guardarProduccion() {
+    const fecha = document.getElementById("fecha").value;
+    const lote = document.getElementById("lote").value.trim();
+    const produccion = parseFloat(document.getElementById("produccion").value);
+
+    if (!fecha || !lote || isNaN(produccion) || produccion <= 0) {
+      mostrarMensaje("Todos los campos son obligatorios y deben ser válidos.");
+      return;
+    }
+
+    if (editando) {
+      editando.fecha = fecha;
+      editando.lote = lote;
+      editando.produccion = produccion;
+    } else {
+      registros.push({
+        id: registros.length ? registros[registros.length - 1].id + 1 : 1,
+        fecha, lote, produccion
+      });
+    }
+
+    actualizarTabla();
+    cerrarFormulario();
+  }
+
+  function editarProduccion(id) {
+    editando = registros.find(r => r.id === id);
+    document.getElementById("fecha").value = editando.fecha;
+    document.getElementById("lote").value = editando.lote;
+    document.getElementById("produccion").value = editando.produccion;
+    mostrarFormulario();
+  }
+
+  function eliminarProduccion(id) {
+    if (confirm("¿Deseas eliminar este registro?")) {
+      registros = registros.filter(r => r.id !== id);
+      actualizarTabla();
+    }
+  }
+
+  function actualizarTabla() {
+    const tbody = document.querySelector("#tabla-produccion tbody");
+    tbody.innerHTML = registros.map(r => `
       <tr>
-        <th>ID</th>
-        <th>Fecha</th>
-        <th>Lote</th>
-        <th>Producción (kg)</th>
-        <th>Acciones</th>
+        <td>${r.id}</td>
+        <td>${r.fecha}</td>
+        <td>${r.lote}</td>
+        <td>${r.produccion} kg</td>
+        <td>
+          <button class="btn-editar" onclick="editarProduccion(${r.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarProduccion(${r.id})">Eliminar</button>
+        </td>
       </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    `).join("");
+  }
 
-  <div id="paginacion"></div>
+  function mostrarMensaje(msg) {
+    const div = document.getElementById("mensaje-error");
+    div.textContent = msg;
+    div.style.display = "block";
+  }
 
-  <div id="modal" class="modal">
-    <div class="modal-content">
-      <h2>Registrar o editar producción</h2>
-      <form id="form-produccion">
-        <label for="fecha">Fecha:</label>
-        <input type="date" id="fecha" name="fecha" required>
-        <label for="lote">Lote:</label>
-        <input type="text" id="lote" name="lote" required>
-        <label for="produccion_kg">Producción (kg):</label>
-        <input type="number" step="0.01" id="produccion_kg" name="produccion_kg" required>
-        <button type="button" onclick="guardarProduccion()">Guardar</button>
-        <button type="button" onclick="cerrarFormulario()">Cerrar</button>
-      </form>
-      <div id="mensaje-error" style="color: red; display: none;"></div>
-    </div>
-  </div>
+  actualizarTabla();
+</script>
+
 </body>
 </html>
-
